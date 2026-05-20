@@ -548,7 +548,7 @@ function salvarOrdemExecucao(ordens) {
 
 /**
  * Inicia até 2 equipes simultaneamente em pistas diferentes.
- * selecoes = [{ equipe: 'RIT-AC', pista: '1' }, { equipe: 'RIT-SP', pista: '2' }]
+ * selecoes = [{ equipe: 'RIT-AC', pista: 'A' }, { equipe: 'RIT-SP', pista: 'B' }]
  * horaInicio = string "HH:MM" (opcional — vazio usa hora atual)
  */
 function iniciarProvaEmLote(selecoes, horaInicio) {

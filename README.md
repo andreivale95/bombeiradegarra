@@ -73,7 +73,7 @@ nome | nome_de_guerra | posto_graduacao | pais | corporacao | equipe | eh_capita
 equipe | pista | ordem | hora_inicio | status | tempo_bruto_mmss | qtd_penalidades | segundos_penalidade | tempo_total_seg | motivo_dsq | observacoes
 ```
 - Validação `equipe`: `Equipes!A2:A`.
-- Validação `pista`: lista direta `1, 2`.
+- Validação `pista`: lista direta `A, B`.
 - Validação `status`: lista direta `Aguardando, Em Prova, Concluída, Desclassificada`.
 - Validação `motivo_dsq`: `RefDSQ!A2:A` (números 1 a 7).
 - **Fórmula na coluna `segundos_penalidade`** (a partir de H2): `=SE(G2="";0;G2*20)`.

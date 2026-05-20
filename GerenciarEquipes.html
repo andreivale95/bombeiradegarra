@@ -210,7 +210,7 @@
         <div>
           <label class="label">Pista</label>
           <select id="rPista">
-            <option value="">—</option><option value="1">Pista 1</option><option value="2">Pista 2</option>
+            <option value="">—</option><option value="A">Pista A</option><option value="B">Pista B</option>
           </select>
         </div>
         <div>
@@ -583,7 +583,7 @@
       // Pill
       let pillHtml = '';
       if (status === 'aguardando') pillHtml = '<span class="pill pill-aguardando">⏳ AGUARDANDO</span>';
-      else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA' + (r && r.pista ? ' · P' + r.pista : '') + '</span>';
+      else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA' + (r && r.pista ? ' · Pista ' + r.pista : '') + '</span>';
       else if (status === 'concluida') pillHtml = '<span class="pill pill-concluida">✅ ' + escapeHtml(r.tempoTotalStr || '—') + '</span>';
       else if (status === 'dsq') pillHtml = '<span class="pill pill-dsq">❌ DSQ</span>';
 
@@ -645,15 +645,15 @@
       const equipes = Array.from(selecionadas);
       cont.innerHTML = equipes.map(function (nome, i) {
         const eq = equipesCache.find(function (e) { return e.nome === nome; }) || { bandeira: '🏳️', nome: nome };
-        const pistaSugerida = String(i + 1);
+        const pistaSugerida = i === 0 ? 'A' : 'B';
         return (
           '<div class="flex items-center gap-2 text-sm">' +
             '<span class="text-xl">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
             '<span class="flex-1 truncate font-semibold">' + escapeHtml(eq.nome) + '</span>' +
             '<span class="text-xs">Pista</span>' +
             '<select data-pista-equipe="' + escapeAttr(nome) + '" style="width:auto;padding:4px 6px">' +
-              '<option value="1"' + (pistaSugerida === '1' ? ' selected' : '') + '>1</option>' +
-              '<option value="2"' + (pistaSugerida === '2' ? ' selected' : '') + '>2</option>' +
+              '<option value="A"' + (pistaSugerida === 'A' ? ' selected' : '') + '>A</option>' +
+              '<option value="B"' + (pistaSugerida === 'B' ? ' selected' : '') + '>B</option>' +
             '</select>' +
           '</div>'
         );

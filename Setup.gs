@@ -297,7 +297,7 @@ function aplicarValidacoesResultados(ss) {
   // pista (B)
   aba.getRange('B2:B').setDataValidation(
     SpreadsheetApp.newDataValidation()
-      .requireValueInList(['1', '2'], true)
+      .requireValueInList(['A', 'B'], true)
       .setAllowInvalid(false).build()
   );
   // status (E)
@@ -440,9 +440,9 @@ function popularDadosExemplo() {
   ss.getSheetByName('Participantes').getRange(2, 1, participantes.length, 7).setValues(participantes);
 
   const resultados = [
-    ['RIT-AC', '1', 1, new Date(2026, 4, 22, 8, 0, 0), 'Concluída', '10:22', 1, '', '', '', 'Excelente atuação'],
-    ['RIT-SP', '2', 2, new Date(2026, 4, 22, 8, 0, 0), 'Concluída', '11:08', 0, '', '', '', ''],
-    ['RIT-RJ', '1', 3, new Date(2026, 4, 22, 8, 30, 0), 'Em Prova', '', 0, '', '', '', ''],
+    ['RIT-AC', 'A', 1, new Date(2026, 4, 22, 8, 0, 0), 'Concluída', '10:22', 1, '', '', '', 'Excelente atuação'],
+    ['RIT-SP', 'B', 2, new Date(2026, 4, 22, 8, 0, 0), 'Concluída', '11:08', 0, '', '', '', ''],
+    ['RIT-RJ', 'A', 3, new Date(2026, 4, 22, 8, 30, 0), 'Em Prova', '', 0, '', '', '', ''],
     ['RIT-MG', '', 4, '', 'Aguardando', '', 0, '', '', '', ''],
   ];
   ss.getSheetByName('Resultados').getRange(2, 1, resultados.length, 11).setValues(resultados);

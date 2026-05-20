@@ -1,0 +1,26 @@
+# Anexo grande — não precisa ir pro Git, mantém o repo leve
+Edital Bombeira de Garra - ENBOM 2026..pdf
+
+# Arquivos internos do Claude Code
+skills-lock.json
+.claude/
+.agents/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Dependências e build (caso futuro use Tailwind CLI)
+node_modules/
+package-lock.json
+*.log
+
+# Backups locais
+*.bak
+*~

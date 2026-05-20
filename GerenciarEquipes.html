@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciador ENBOM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+    .spinner { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    input[type="text"], input[type="time"], input[type="number"], select, textarea {
+      width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #ef4444; outline-offset: -1px; border-color: #ef4444; }
+    input[readonly] { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+    .btn { padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px; border: none; }
+    .btn-primary { background: #dc2626; color: white; }
+    .btn-primary:hover { background: #b91c1c; }
+    .btn-primary:disabled { background: #94a3b8; cursor: wait; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger { color: #dc2626; background: transparent; }
+    .btn-danger:hover { background: #fee2e2; }
+    .label { display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .required::after { content: ' *'; color: #dc2626; }
+    .toast {
+      position: fixed; top: 8px; left: 8px; right: 8px; padding: 8px 12px;
+      border-radius: 4px; font-weight: 500; z-index: 60; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toast-success { background: #16a34a; color: white; }
+    .toast-error { background: #dc2626; color: white; }
+    .pill {
+      display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px;
+      border-radius: 9999px; vertical-align: middle; letter-spacing: 0.03em; white-space: nowrap;
+    }
+    .pill-aguardando { background: #f1f5f9; color: #475569; }
+    .pill-emprova { background: #fee2e2; color: #991b1b; }
+    .pill-concluida { background: #dcfce7; color: #166534; }
+    .pill-dsq { background: #e2e8f0; color: #475569; }
+    .section { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+    .section-title { font-weight: 700; font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .filter-chip {
+      padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 600;
+      background: #e2e8f0; color: #475569; cursor: pointer; border: none;
+    }
+    .filter-chip.active { background: #dc2626; color: white; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 70;
+      display: flex; align-items: center; justify-content: center; padding: 12px;
+    }
+    .modal-box {
+      background: white; border-radius: 8px; padding: 16px; max-width: 320px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .acao-bar {
+      position: sticky; top: 0; z-index: 40; background: #fef3c7; border: 1px solid #fcd34d;
+      border-radius: 6px; padding: 8px; margin-bottom: 10px;
+      display: flex; gap: 6px; align-items: center;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
+      display: inline-block; animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Datalist para autocomplete de fiscal (compartilhado) -->
+  <datalist id="fiscaisRecentes"></datalist>
+
+  <!-- ============================================================ -->
+  <!-- TELA: LISTA DE EQUIPES                                        -->
+  <!-- ============================================================ -->
+  <div id="telaLista" class="p-3">
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="font-bold text-base">🏆 Equipes <span id="contadorEquipes" class="text-slate-500 text-sm font-normal"></span></h1>
+      <button id="btnRecarregar" class="btn-secondary text-xs px-2 py-1 rounded" title="Recarregar">🔄</button>
+    </div>
+    <button id="btnNova" class="btn btn-primary w-full mb-2">+ Nova equipe</button>
+    <div class="grid grid-cols-2 gap-1 mb-2">
+      <button id="btnDefinirOrdem" class="btn btn-secondary text-xs">📋 Definir ordem</button>
+      <button id="btnAtualizarPainel" class="btn btn-secondary text-xs" title="Força atualização do painel público (cache também é atualizado automaticamente após cada alteração)">📢 Atualizar painel</button>
+    </div>
+
+    <input id="campoBusca" type="text" placeholder="🔎 Buscar por nome..." class="mb-2">
+
+    <div class="flex flex-wrap gap-1 mb-2">
+      <button class="filter-chip active" data-filtro="todas">Todas</button>
+      <button class="filter-chip" data-filtro="aguardando">⏳ Aguardando</button>
+      <button class="filter-chip" data-filtro="emprova">⏱️ Em Prova</button>
+      <button class="filter-chip" data-filtro="concluida">✅ Concluídas</button>
+      <button class="filter-chip" data-filtro="dsq">❌ DSQ</button>
+    </div>
+
+    <!-- Barra de ação para seleção múltipla (iniciar prova juntas) -->
+    <div id="barraAcao" class="acao-bar hidden">
+      <span class="text-xs font-semibold flex-1">
+        <span id="contadorSelecao">0</span> selecionada(s)
+      </span>
+      <button id="btnLimparSelecao" class="btn btn-secondary text-xs">Limpar</button>
+      <button id="btnIniciarProva" class="btn btn-success text-xs">▶ Iniciar prova</button>
+    </div>
+
+    <div id="loadingLista" class="text-center py-8 text-slate-500">
+      <div class="spinner inline-block w-6 h-6 border-4 border-red-600 border-t-transparent rounded-full"></div>
+      <p class="mt-2 text-xs">Carregando…</p>
+    </div>
+    <div id="listaEquipes" class="space-y-2"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TELA: FORMULÁRIO DE EQUIPE (CRUD)                             -->
+  <!-- ============================================================ -->
+  <div id="telaEquipe" class="p-3 hidden">
+    <div class="flex items-center justify-between mb-3 sticky top-0 bg-slate-50 py-1 z-10">
+      <button id="btnVoltarEquipe" class="btn btn-secondary">← Voltar</button>
+      <button id="btnSalvarEquipe" class="btn btn-primary">💾 Salvar</button>
+    </div>
+    <div id="erroBannerEquipe" class="hidden bg-red-100 border border-red-300 text-red-800 rounded p-2 mb-3 text-xs"></div>
+
+    <div class="section">
+      <div class="section-title">Dados da equipe</div>
+      <div class="space-y-2">
+        <div>
+          <label class="label required">Nome da equipe</label>
+          <input id="fNome" type="text" placeholder="Ex: RIT-AC">
+        </div>
+        <div>
+          <label class="label required">País</label>
+          <div class="flex gap-2 items-center">
+            <select id="fPais" class="flex-1"></select>
+            <span id="fBandeiraPreview" class="text-2xl"></span>
+          </div>
+        </div>
+        <div>
+          <label class="label">Corporação</label>
+          <input id="fCorporacao" type="text" placeholder="Ex: CBMAC">
+        </div>
+        <div>
+          <label class="label">Estado/Província/Região</label>
+          <input id="fUnidade" type="text" placeholder="Ex: Acre">
+        </div>
+        <div>
+          <label class="label">Ordem de prova (sorteio)</label>
+          <input id="fOrdemProva" type="number" min="1" placeholder="Preenchido após sorteio">
+          <p class="text-xs text-slate-500 mt-1">Define a ordem de execução. Vazio = sem ordem definida.</p>
+        </div>
+        <div>
+          <label class="label">Bandeira (emoji opcional, sobrescreve a do país)</label>
+          <input id="fBandeira" type="text" maxlength="8" placeholder="🇧🇷">
+        </div>
+        <div>
+          <label class="label">Observações</label>
+          <textarea id="fObservacoes" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Participantes <span id="contadorParts" class="text-slate-400 font-normal"></span></div>
+      <div id="listaPartsForm" class="space-y-2"></div>
+      <button id="btnAddParticipante" class="btn btn-secondary w-full mt-2 text-xs">+ Adicionar participante</button>
+      <p class="text-xs text-slate-500 mt-2">Edital: 2 ou 3 bombeiras por equipe. Marque exatamente uma como capitã.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TELA: PONTUAÇÃO (RESULTADO + PENALIDADES)                     -->
+  <!-- ============================================================ -->
+  <div id="telaResultado" class="p-3 hidden">
+    <div class="flex items-center justify-between mb-3 sticky top-0 bg-slate-50 py-1 z-10">
+      <button id="btnVoltarResultado" class="btn btn-secondary">← Voltar</button>
+      <button id="btnSalvarResultado" class="btn btn-primary">💾 Salvar</button>
+    </div>
+    <div id="erroBannerResultado" class="hidden bg-red-100 border border-red-300 text-red-800 rounded p-2 mb-3 text-xs"></div>
+
+    <div class="bg-gradient-to-r from-red-700 to-red-800 text-white rounded p-2 mb-3">
+      <div class="font-bold text-base flex items-center gap-2">
+        <span id="rHeaderBandeira" class="text-2xl"></span>
+        <span id="rHeaderNome"></span>
+      </div>
+      <div id="rHeaderInfo" class="text-xs opacity-90 mt-0.5"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Status</div>
+      <div id="rStatusAtualInfo" class="hidden bg-red-50 border border-red-200 rounded p-2 mb-2 text-xs"></div>
+      <div id="rStatusGroup" class="space-y-1">
+        <label class="flex items-center gap-1.5 cursor-pointer p-1 rounded hover:bg-slate-100">
+          <input type="radio" name="rStatus" value="Concluída"><span class="text-xs">✅ Concluída</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer p-1 rounded hover:bg-slate-100">
+          <input type="radio" name="rStatus" value="Desclassificada"><span class="text-xs">❌ Desclassificada</span>
+        </label>
+      </div>
+      <p class="text-xs text-slate-500 mt-2">Para iniciar uma equipe, use o botão "▶ Iniciar prova" na lista. Aqui você lança o resultado final ou desclassificação.</p>
+    </div>
+
+    <div id="rCamposExecucao" class="section hidden">
+      <div class="section-title">Execução</div>
+      <div class="space-y-2">
+        <div>
+          <label class="label">Pista</label>
+          <select id="rPista">
+            <option value="">—</option><option value="1">Pista 1</option><option value="2">Pista 2</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Hora de início</label>
+          <input id="rHoraInicio" type="time">
+          <p class="text-xs text-slate-500 mt-1">Preenchido automaticamente ao marcar "Em Prova".</p>
+        </div>
+        <div>
+          <label class="label">Tempo bruto (mm:ss.cc)</label>
+          <input id="rTempoBruto" type="text" placeholder="10:22.45" maxlength="8" inputmode="numeric">
+          <p class="text-xs text-slate-500 mt-1">Digite apenas números — separadores entram automaticamente.</p>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded p-2 text-xs">
+          <div class="font-semibold text-amber-900">⏱️ Tempo total estimado</div>
+          <div id="rTempoTotalPreview" class="font-mono text-lg text-amber-900">—</div>
+          <div id="rTempoTotalBreakdown" class="text-amber-700 text-xs"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="rCamposDsq" class="section hidden">
+      <div class="section-title">Motivo da desclassificação</div>
+      <select id="rMotivoDsq">
+        <option value="">— Selecione —</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Penalidades <span id="contadorPenalidades" class="text-slate-400 font-normal"></span></div>
+      <div id="listaPenalidades" class="space-y-2 mb-2"></div>
+      <button id="btnAddPenalidade" class="btn btn-secondary w-full text-xs">+ Adicionar penalidade</button>
+      <p class="text-xs text-slate-500 mt-2">Cada penalidade soma 20s ao tempo total (Anexo D, item 18).</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Observações</div>
+      <textarea id="rObservacoes" rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: INICIAR PROVA JUNTAS                                   -->
+  <!-- ============================================================ -->
+  <div id="modalIniciar" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="font-bold text-base mb-3">▶ Iniciar prova</h3>
+      <p class="text-xs text-slate-600 mb-3">Defina a pista de cada equipe e confirme a hora de início.</p>
+      <div id="modalSelecoes" class="space-y-2 mb-3"></div>
+      <div class="mb-3">
+        <label class="label">Hora de início</label>
+        <input id="modalHora" type="time">
+      </div>
+      <div id="modalErro" class="hidden bg-red-100 border border-red-300 text-red-800 rounded p-2 mb-3 text-xs"></div>
+      <div class="flex gap-2 justify-end">
+        <button id="modalCancelar" class="btn btn-secondary">Cancelar</button>
+        <button id="modalConfirmar" class="btn btn-success">▶ Iniciar agora</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: DEFINIR ORDEM DE EXECUÇÃO                              -->
+  <!-- ============================================================ -->
+  <div id="modalOrdem" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 360px">
+      <h3 class="font-bold text-base mb-2">📋 Ordem de execução</h3>
+      <p class="text-xs text-slate-600 mb-2">Defina o número de cada equipe no sorteio. Equipes aparecerão na seção "Aguardando" do painel nessa sequência.</p>
+      <button id="btnSortearOrdem" class="btn btn-secondary w-full mb-2 text-xs">🎲 Sortear ordem aleatória</button>
+      <button id="btnLimparOrdem" class="btn btn-secondary w-full mb-3 text-xs">↻ Limpar todas</button>
+      <div id="listaOrdem" class="space-y-1.5 mb-3"></div>
+      <div id="modalOrdemErro" class="hidden bg-red-100 border border-red-300 text-red-800 rounded p-2 mb-3 text-xs"></div>
+      <div class="flex gap-2 justify-end">
+        <button id="modalOrdemCancelar" class="btn btn-secondary">Cancelar</button>
+        <button id="modalOrdemSalvar" class="btn btn-primary">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // CONSTANTES
+    // ============================================================
+    const POSTOS = [
+      'SD', 'CB', '3º SGT', '2º SGT', '1º SGT', 'ST', 'ASP',
+      '2º TEN', '1º TEN', 'CAP', 'MAJ', 'TC', 'CEL'
+    ];
+    // Fases conforme Anexo D do edital. O `valor` salvo na planilha é só "I", "II"…
+    // O `nome` aparece no dropdown (compatibilidade com penalidades antigas).
+    const FASES = [
+      { num: 'I',   nome: 'EQUIPAGEM' },
+      { num: 'II',  nome: 'MONTAGEM DE LINHA' },
+      { num: 'III', nome: 'TRANSPOSIÇÃO' },
+      { num: 'IV',  nome: 'LOCALIZAÇÃO DA VÍTIMA' },
+      { num: 'V',   nome: 'ARROMBAMENTO' },
+    ];
+    const CHAVE_FISCAIS = 'enbom_fiscais_recentes';
+    const MAX_FISCAIS = 10;
+    const MAX_SELECAO = 2;
+
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
+    let telaAtual = 'lista';
+    let nomeOriginal = '';
+    let paisesDisponiveis = [];
+    let bandeiraPorPais = {};
+    let participantesForm = [];
+    let proximoIdPart = 1;
+    let equipesCache = [];               // última lista carregada
+    let filtroAtivo = 'todas';
+    let textoBusca = '';
+    let selecionadas = new Set();        // equipes marcadas para "iniciar prova juntas"
+    let formDirty = false;               // dirty flag para o formulário equipe
+    let formResultadoDirty = false;      // dirty flag para o formulário pontuação
+
+    // Estado da tela de resultado
+    let resultadoEquipe = null;
+    let resultadoDados = null;
+    let penalidadesForm = [];
+    let proximoIdPen = 1;
+
+    // ============================================================
+    // INICIALIZAÇÃO E EVENTOS GLOBAIS
+    // ============================================================
+    document.getElementById('btnNova').addEventListener('click', abrirFormNova);
+    document.getElementById('btnRecarregar').addEventListener('click', carregarLista);
+    document.getElementById('btnVoltarEquipe').addEventListener('click', tentarVoltarDoEquipe);
+    document.getElementById('btnSalvarEquipe').addEventListener('click', salvarEquipe);
+    document.getElementById('btnAddParticipante').addEventListener('click', function () { adicionarParticipante(); });
+    document.getElementById('fPais').addEventListener('change', function () { atualizarBandeiraPreview(); marcarDirty(); });
+    document.getElementById('fBandeira').addEventListener('input', function () { atualizarBandeiraPreview(); marcarDirty(); });
+
+    // Dirty flag para todos campos do form equipe
+    ['fNome', 'fCorporacao', 'fUnidade', 'fOrdemProva', 'fObservacoes'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', marcarDirty);
+    });
+
+    document.getElementById('btnVoltarResultado').addEventListener('click', tentarVoltarDoResultado);
+    document.getElementById('btnSalvarResultado').addEventListener('click', salvarResultado);
+    document.getElementById('btnAddPenalidade').addEventListener('click', adicionarPenalidade);
+    document.querySelectorAll('input[name="rStatus"]').forEach(function (r) {
+      r.addEventListener('change', function () { onStatusChange(); marcarDirtyResultado(); });
+    });
+    document.getElementById('rTempoBruto').addEventListener('input', function () {
+      aplicarMascaraTempoBruto(this);
+      autoMudarParaConcluida();
+      atualizarTempoTotalPreview();
+      marcarDirtyResultado();
+    });
+    ['rPista', 'rHoraInicio', 'rMotivoDsq', 'rObservacoes'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', marcarDirtyResultado);
+      document.getElementById(id).addEventListener('change', marcarDirtyResultado);
+    });
+
+    // Busca e filtros
+    document.getElementById('campoBusca').addEventListener('input', function (e) {
+      textoBusca = e.target.value.toLowerCase().trim();
+      renderLista(equipesCache);
+    });
+    document.querySelectorAll('.filter-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+        filtroAtivo = chip.getAttribute('data-filtro');
+        renderLista(equipesCache);
+      });
+    });
+
+    // Seleção múltipla
+    document.getElementById('btnLimparSelecao').addEventListener('click', limparSelecao);
+    document.getElementById('btnIniciarProva').addEventListener('click', abrirModalIniciar);
+
+    // Modal "Iniciar prova"
+    document.getElementById('modalCancelar').addEventListener('click', fecharModal);
+    document.getElementById('modalConfirmar').addEventListener('click', confirmarIniciarLote);
+
+    // Modal "Definir ordem de execução"
+    document.getElementById('btnDefinirOrdem').addEventListener('click', abrirModalOrdem);
+    document.getElementById('btnAtualizarPainel').addEventListener('click', atualizarPainelManual);
+    document.getElementById('btnSortearOrdem').addEventListener('click', sortearOrdem);
+    document.getElementById('btnLimparOrdem').addEventListener('click', limparOrdens);
+    document.getElementById('modalOrdemCancelar').addEventListener('click', fecharModalOrdem);
+    document.getElementById('modalOrdemSalvar').addEventListener('click', salvarOrdemExecucao);
+
+    atualizarDatalistFiscais();
+    carregarPaises();
+    carregarLista();
+
+    // ============================================================
+    // HELPERS — DISPLAY DE PARTICIPANTES E CAPITÃ
+    // ============================================================
+    function formatarParticipante(p) {
+      if (!p) return '';
+      const guerra = String(p.nomeDeGuerra || '').trim().toUpperCase();
+      const posto = String(p.postoGraduacao || '').trim();
+      if (guerra) return (posto ? posto + ' ' : '') + guerra;
+      // Sem nome de guerra: cai pro nome completo
+      const nomeFb = String(p.nome || '').trim();
+      return (posto ? posto + ' ' : '') + nomeFb;
+    }
+
+    function formatarCapita(equipe) {
+      if (!equipe) return '';
+      const cap = (equipe.participantes || []).find(function (p) { return p.ehCapita; });
+      if (cap) return formatarParticipante(cap) + ' - Cap da Equipe';
+      // Fallback ao campo livre da aba Equipes
+      if (equipe.capita) return String(equipe.capita).trim() + ' - Cap da Equipe';
+      return '';
+    }
+
+    // ============================================================
+    // HELPERS — DIRTY FLAG (aviso ao voltar sem salvar)
+    // ============================================================
+    function marcarDirty() { formDirty = true; }
+    function marcarDirtyResultado() { formResultadoDirty = true; }
+    function tentarVoltarDoEquipe() {
+      if (formDirty && !confirm('Descartar alterações nesta equipe?')) return;
+      formDirty = false;
+      mostrarTela('lista');
+    }
+    function tentarVoltarDoResultado() {
+      if (formResultadoDirty && !confirm('Descartar alterações na pontuação?')) return;
+      formResultadoDirty = false;
+      mostrarTela('lista');
+    }
+
+    // ============================================================
+    // CARREGAMENTO DE DADOS
+    // ============================================================
+    function carregarPaises() {
+      google.script.run
+        .withSuccessHandler(function (lista) {
+          paisesDisponiveis = lista || [];
+          bandeiraPorPais = {};
+          const select = document.getElementById('fPais');
+          select.innerHTML = '<option value="">Selecione…</option>';
+          paisesDisponiveis.forEach(function (p) {
+            bandeiraPorPais[p.pais] = p.bandeira;
+            const opt = document.createElement('option');
+            opt.value = p.pais;
+            opt.textContent = (p.bandeira || '') + ' ' + p.pais;
+            select.appendChild(opt);
+          });
+        })
+        .listarPaisesParaForm();
+    }
+
+    function carregarLista() {
+      document.getElementById('loadingLista').classList.remove('hidden');
+      document.getElementById('listaEquipes').innerHTML = '';
+      limparSelecao();
+      google.script.run
+        .withSuccessHandler(function (equipes) {
+          equipesCache = equipes || [];
+          renderLista(equipesCache);
+        })
+        .withFailureHandler(function (err) {
+          document.getElementById('loadingLista').classList.add('hidden');
+          mostrarToast('Erro: ' + (err && err.message ? err.message : err), 'error');
+        })
+        .listarEquipesCompletas();
+    }
+
+    // ============================================================
+    // LISTAGEM + FILTROS + ORDENAÇÃO
+    // ============================================================
+    function classificarStatus(eq) {
+      const r = eq.resultado;
+      if (!r || !r.status || r.status === 'Aguardando') return 'aguardando';
+      if (r.status === 'Em Prova') return 'emprova';
+      if (r.status === 'Concluída') return 'concluida';
+      if (r.status === 'Desclassificada') return 'dsq';
+      return 'aguardando';
+    }
+
+    function filtrarEOrdenar(equipes) {
+      let filtradas = equipes.slice();
+
+      // Filtro de status
+      if (filtroAtivo !== 'todas') {
+        filtradas = filtradas.filter(function (e) { return classificarStatus(e) === filtroAtivo; });
+      }
+
+      // Busca por texto
+      if (textoBusca) {
+        filtradas = filtradas.filter(function (e) {
+          return (e.nome || '').toLowerCase().indexOf(textoBusca) >= 0
+            || (e.corporacao || '').toLowerCase().indexOf(textoBusca) >= 0
+            || (e.pais || '').toLowerCase().indexOf(textoBusca) >= 0;
+        });
+      }
+
+      // Ordenação
+      if (filtroAtivo === 'concluida' || (filtroAtivo === 'todas' && filtradas.every(function (e) { return classificarStatus(e) === 'concluida'; }))) {
+        // Ranking por tempo total ascendente
+        filtradas.sort(function (a, b) {
+          const ta = a.resultado && a.resultado.tempoTotalSeg != null ? a.resultado.tempoTotalSeg : Infinity;
+          const tb = b.resultado && b.resultado.tempoTotalSeg != null ? b.resultado.tempoTotalSeg : Infinity;
+          return ta - tb;
+        });
+      } else {
+        // Ordem por ordem_prova ascendente; sem ordem vai pro fim
+        filtradas.sort(function (a, b) {
+          const oa = (a.ordemProva != null) ? a.ordemProva : Infinity;
+          const ob = (b.ordemProva != null) ? b.ordemProva : Infinity;
+          if (oa !== ob) return oa - ob;
+          return (a.nome || '').localeCompare(b.nome || '');
+        });
+      }
+
+      return filtradas;
+    }
+
+    function renderLista(equipes) {
+      document.getElementById('loadingLista').classList.add('hidden');
+      document.getElementById('contadorEquipes').textContent = '(' + equipes.length + ')';
+
+      const filtradas = filtrarEOrdenar(equipes);
+      const cont = document.getElementById('listaEquipes');
+
+      if (equipes.length === 0) {
+        cont.innerHTML = '<p class="text-center text-slate-500 text-xs py-8">Nenhuma equipe cadastrada ainda.<br>Clique em "+ Nova equipe" para começar.</p>';
+        return;
+      }
+      if (filtradas.length === 0) {
+        cont.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">Nenhuma equipe corresponde aos filtros.</p>';
+        return;
+      }
+
+      cont.innerHTML = filtradas.map(function (eq) {
+        return renderCardEquipe(eq);
+      }).join('');
+
+      // Binds dos botões e checkboxes
+      cont.querySelectorAll('button[data-acao]').forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          const acao = btn.getAttribute('data-acao');
+          const nome = btn.getAttribute('data-nome');
+          if (acao === 'editar') abrirFormEdicao(nome, equipes);
+          else if (acao === 'excluir') confirmarExclusao(nome);
+          else if (acao === 'pontuacao') abrirTelaResultado(nome);
+        });
+      });
+      cont.querySelectorAll('input[type="checkbox"][data-equipe-check]').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          const nome = cb.getAttribute('data-equipe-check');
+          if (cb.checked) {
+            if (selecionadas.size >= MAX_SELECAO) {
+              cb.checked = false;
+              mostrarToast('Máximo de ' + MAX_SELECAO + ' equipes simultâneas (Art. 2º §3º).', 'error');
+              return;
+            }
+            selecionadas.add(nome);
+          } else {
+            selecionadas.delete(nome);
+          }
+          atualizarBarraAcao();
+        });
+      });
+    }
+
+    function renderCardEquipe(eq) {
+      const status = classificarStatus(eq);
+      const r = eq.resultado;
+      const capInfo = formatarCapita(eq) || '—';
+      const nPart = (eq.participantes || []).length;
+      const ordem = eq.ordemProva != null ? eq.ordemProva : '';
+
+      // Pill
+      let pillHtml = '';
+      if (status === 'aguardando') pillHtml = '<span class="pill pill-aguardando">⏳ AGUARDANDO</span>';
+      else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA' + (r && r.pista ? ' · P' + r.pista : '') + '</span>';
+      else if (status === 'concluida') pillHtml = '<span class="pill pill-concluida">✅ ' + escapeHtml(r.tempoTotalStr || '—') + '</span>';
+      else if (status === 'dsq') pillHtml = '<span class="pill pill-dsq">❌ DSQ</span>';
+
+      // Checkbox apenas para "aguardando"
+      const checkbox = status === 'aguardando'
+        ? '<input type="checkbox" class="mr-1" data-equipe-check="' + escapeAttr(eq.nome) + '"' +
+            (selecionadas.has(eq.nome) ? ' checked' : '') + '>'
+        : '';
+
+      const ordemBadge = ordem !== ''
+        ? '<span class="inline-block text-xs font-bold text-slate-400 w-5">' + ordem + 'º</span>'
+        : '';
+
+      return (
+        '<div class="bg-white border border-slate-200 rounded p-2">' +
+          '<div class="flex items-center gap-2 mb-1.5">' +
+            checkbox +
+            ordemBadge +
+            '<div class="text-xl">' + escapeHtml(eq.bandeira || '🏳️') + '</div>' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="font-bold truncate flex items-center gap-1.5">' +
+                '<span class="truncate">' + escapeHtml(eq.nome) + '</span>' +
+                pillHtml +
+              '</div>' +
+              '<div class="text-xs text-slate-500 truncate">' +
+                escapeHtml(capInfo) + ' · ' + nPart + ' part.' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex gap-1">' +
+            '<button class="btn btn-success text-xs flex-1" data-acao="pontuacao" data-nome="' + escapeAttr(eq.nome) + '">📊 Pontuação</button>' +
+            '<button class="btn btn-secondary text-xs" data-acao="editar" data-nome="' + escapeAttr(eq.nome) + '" title="Editar dados">✏️</button>' +
+            '<button class="btn btn-danger text-xs" data-acao="excluir" data-nome="' + escapeAttr(eq.nome) + '" title="Excluir">🗑️</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    // ============================================================
+    // SELEÇÃO MÚLTIPLA E MODAL DE INICIAR PROVA
+    // ============================================================
+    function atualizarBarraAcao() {
+      const barra = document.getElementById('barraAcao');
+      document.getElementById('contadorSelecao').textContent = selecionadas.size;
+      barra.classList.toggle('hidden', selecionadas.size === 0);
+    }
+
+    function limparSelecao() {
+      selecionadas.clear();
+      document.querySelectorAll('input[type="checkbox"][data-equipe-check]').forEach(function (cb) {
+        cb.checked = false;
+      });
+      atualizarBarraAcao();
+    }
+
+    function abrirModalIniciar() {
+      if (selecionadas.size === 0) return;
+      const cont = document.getElementById('modalSelecoes');
+      const equipes = Array.from(selecionadas);
+      cont.innerHTML = equipes.map(function (nome, i) {
+        const eq = equipesCache.find(function (e) { return e.nome === nome; }) || { bandeira: '🏳️', nome: nome };
+        const pistaSugerida = String(i + 1);
+        return (
+          '<div class="flex items-center gap-2 text-sm">' +
+            '<span class="text-xl">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
+            '<span class="flex-1 truncate font-semibold">' + escapeHtml(eq.nome) + '</span>' +
+            '<span class="text-xs">Pista</span>' +
+            '<select data-pista-equipe="' + escapeAttr(nome) + '" style="width:auto;padding:4px 6px">' +
+              '<option value="1"' + (pistaSugerida === '1' ? ' selected' : '') + '>1</option>' +
+              '<option value="2"' + (pistaSugerida === '2' ? ' selected' : '') + '>2</option>' +
+            '</select>' +
+          '</div>'
+        );
+      }).join('');
+      document.getElementById('modalHora').value = horaAtualHHMM();
+      document.getElementById('modalErro').classList.add('hidden');
+      document.getElementById('modalIniciar').classList.remove('hidden');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalIniciar').classList.add('hidden');
+    }
+
+    function confirmarIniciarLote() {
+      const selecoes = [];
+      document.querySelectorAll('select[data-pista-equipe]').forEach(function (sel) {
+        selecoes.push({
+          equipe: sel.getAttribute('data-pista-equipe'),
+          pista: sel.value,
+        });
+      });
+      const hora = document.getElementById('modalHora').value;
+
+      const btn = document.getElementById('modalConfirmar');
+      btn.disabled = true;
+      btn.textContent = '⏳ Iniciando…';
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          btn.disabled = false;
+          btn.textContent = '▶ Iniciar agora';
+          if (resp && resp.sucesso) {
+            mostrarToast(resp.mensagem || 'Iniciada(s)', 'success');
+            fecharModal();
+            limparSelecao();
+            carregarLista();
+          } else {
+            mostrarErroModal((resp && resp.erro) || 'Erro');
+          }
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          btn.textContent = '▶ Iniciar agora';
+          mostrarErroModal(err && err.message ? err.message : String(err));
+        })
+        .iniciarProvaEmLote(selecoes, hora);
+    }
+
+    function mostrarErroModal(msg) {
+      const b = document.getElementById('modalErro');
+      b.textContent = '⚠️ ' + msg;
+      b.classList.remove('hidden');
+    }
+
+    // ============================================================
+    // MODAL: DEFINIR ORDEM DE EXECUÇÃO
+    // ============================================================
+    let ordensForm = []; // [{equipe, ordem, bandeira, statusClass}]
+
+    function abrirModalOrdem() {
+      if (!equipesCache || equipesCache.length === 0) {
+        return mostrarToast('Nenhuma equipe cadastrada ainda.', 'error');
+      }
+      // Preenche ordensForm com ordem atual de cada equipe, ordenado pela ordem existente
+      ordensForm = equipesCache.map(function (eq) {
+        return {
+          equipe: eq.nome,
+          bandeira: eq.bandeira || '🏳️',
+          ordem: (eq.ordemProva != null) ? eq.ordemProva : '',
+          statusClass: classificarStatus(eq),
+        };
+      });
+      ordensForm.sort(ordenarPorOrdemInterna);
+      document.getElementById('modalOrdemErro').classList.add('hidden');
+      renderModalOrdem();
+      document.getElementById('modalOrdem').classList.remove('hidden');
+    }
+
+    function fecharModalOrdem() {
+      document.getElementById('modalOrdem').classList.add('hidden');
+    }
+
+    function ordenarPorOrdemInterna(a, b) {
+      const oa = (a.ordem !== '' && a.ordem != null) ? Number(a.ordem) : Infinity;
+      const ob = (b.ordem !== '' && b.ordem != null) ? Number(b.ordem) : Infinity;
+      if (oa !== ob) return oa - ob;
+      return (a.equipe || '').localeCompare(b.equipe || '');
+    }
+
+    function renderModalOrdem() {
+      const cont = document.getElementById('listaOrdem');
+      cont.innerHTML = ordensForm.map(function (o, i) {
+        const pill = pillStatusInline(o.statusClass);
+        return (
+          '<div class="flex items-center gap-2 p-1.5 border border-slate-200 rounded">' +
+            '<input type="number" min="1" data-ordem-equipe="' + escapeAttr(o.equipe) + '"' +
+              ' value="' + (o.ordem !== '' && o.ordem != null ? o.ordem : '') + '"' +
+              ' style="width:50px;text-align:center;font-weight:600">' +
+            '<span class="text-lg">' + escapeHtml(o.bandeira) + '</span>' +
+            '<span class="flex-1 truncate font-semibold text-sm">' + escapeHtml(o.equipe) + '</span>' +
+            pill +
+          '</div>'
+        );
+      }).join('');
+      // Bind nos inputs para atualizar ordensForm em memória
+      cont.querySelectorAll('input[data-ordem-equipe]').forEach(function (input) {
+        input.addEventListener('input', function () {
+          const equipe = input.getAttribute('data-ordem-equipe');
+          const o = ordensForm.find(function (x) { return x.equipe === equipe; });
+          if (!o) return;
+          o.ordem = input.value === '' ? '' : Number(input.value);
+        });
+      });
+    }
+
+    function pillStatusInline(cls) {
+      if (cls === 'aguardando') return '<span class="pill pill-aguardando">⏳ AGUARD.</span>';
+      if (cls === 'emprova') return '<span class="pill pill-emprova">⏱️ EM PROVA</span>';
+      if (cls === 'concluida') return '<span class="pill pill-concluida">✅ FEITA</span>';
+      if (cls === 'dsq') return '<span class="pill pill-dsq">❌ DSQ</span>';
+      return '';
+    }
+
+    function sortearOrdem() {
+      // Gera array [1..N] e embaralha (Fisher–Yates)
+      const nums = [];
+      for (let i = 1; i <= ordensForm.length; i++) nums.push(i);
+      for (let i = nums.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = nums[i]; nums[i] = nums[j]; nums[j] = tmp;
+      }
+      ordensForm.forEach(function (o, i) { o.ordem = nums[i]; });
+      ordensForm.sort(ordenarPorOrdemInterna);
+      renderModalOrdem();
+    }
+
+    function limparOrdens() {
+      if (!confirm('Limpar a ordem de TODAS as equipes?')) return;
+      ordensForm.forEach(function (o) { o.ordem = ''; });
+      ordensForm.sort(ordenarPorOrdemInterna);
+      renderModalOrdem();
+    }
+
+    function salvarOrdemExecucao() {
+      document.getElementById('modalOrdemErro').classList.add('hidden');
+
+      // Valida duplicatas no lado cliente (msg melhor que ir e voltar do server)
+      const usados = {};
+      for (let i = 0; i < ordensForm.length; i++) {
+        const v = ordensForm[i].ordem;
+        if (v === '' || v == null) continue;
+        const n = Number(v);
+        if (isNaN(n) || n < 1) {
+          return mostrarErroOrdem('Ordem deve ser um número positivo (equipe ' + ordensForm[i].equipe + ').');
+        }
+        if (usados[n]) {
+          return mostrarErroOrdem('Número ' + n + ' está duplicado.');
+        }
+        usados[n] = true;
+      }
+
+      const payload = ordensForm.map(function (o) {
+        return { equipe: o.equipe, ordem: o.ordem === '' ? '' : Number(o.ordem) };
+      });
+
+      const btn = document.getElementById('modalOrdemSalvar');
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvando…';
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          btn.disabled = false;
+          btn.textContent = '💾 Salvar';
+          if (resp && resp.sucesso) {
+            mostrarToast(resp.mensagem || 'Ordem salva', 'success');
+            fecharModalOrdem();
+            carregarLista();
+          } else {
+            mostrarErroOrdem((resp && resp.erro) || 'Erro');
+          }
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          btn.textContent = '💾 Salvar';
+          mostrarErroOrdem(err && err.message ? err.message : String(err));
+        })
+        .salvarOrdemExecucao(payload);
+    }
+
+    function mostrarErroOrdem(msg) {
+      const b = document.getElementById('modalOrdemErro');
+      b.textContent = '⚠️ ' + msg;
+      b.classList.remove('hidden');
+      b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ============================================================
+    // ATUALIZAR PAINEL PÚBLICO MANUALMENTE
+    // ============================================================
+    function atualizarPainelManual() {
+      const btn = document.getElementById('btnAtualizarPainel');
+      const txtOrig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ Atualizando…';
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          btn.disabled = false;
+          btn.textContent = txtOrig;
+          const hora = (resp && resp.hora) ? resp.hora : '';
+          mostrarToast('📢 Painel público atualizado' + (hora ? ' às ' + hora : ''), 'success');
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          btn.textContent = txtOrig;
+          mostrarToast('Erro: ' + (err && err.message ? err.message : err), 'error');
+        })
+        .atualizarPainelPublico();
+    }
+
+    // ============================================================
+    // FORMULÁRIO DE EQUIPE (CRUD)
+    // ============================================================
+    function abrirFormNova() {
+      nomeOriginal = '';
+      participantesForm = [];
+      proximoIdPart = 1;
+      document.getElementById('fNome').readOnly = false;
+      document.getElementById('fNome').value = '';
+      document.getElementById('fPais').value = '';
+      document.getElementById('fCorporacao').value = '';
+      document.getElementById('fUnidade').value = '';
+      document.getElementById('fOrdemProva').value = '';
+      document.getElementById('fBandeira').value = '';
+      document.getElementById('fObservacoes').value = '';
+      atualizarBandeiraPreview();
+      adicionarParticipante();
+      esconderErro('erroBannerEquipe');
+      formDirty = false;
+      mostrarTela('equipe');
+    }
+
+    function abrirFormEdicao(nome, equipes) {
+      const eq = equipes.find(function (e) { return e.nome === nome; });
+      if (!eq) return mostrarToast('Equipe não encontrada', 'error');
+      nomeOriginal = eq.nome;
+      proximoIdPart = 1;
+      document.getElementById('fNome').value = eq.nome;
+      document.getElementById('fNome').readOnly = true;
+      document.getElementById('fPais').value = eq.pais || '';
+      document.getElementById('fCorporacao').value = eq.corporacao || '';
+      document.getElementById('fUnidade').value = eq.unidadeSubnacional || '';
+      document.getElementById('fOrdemProva').value = (eq.ordemProva != null) ? eq.ordemProva : '';
+      document.getElementById('fBandeira').value = (eq.bandeira && eq.bandeira !== bandeiraPorPais[eq.pais]) ? eq.bandeira : '';
+      document.getElementById('fObservacoes').value = eq.observacoes || '';
+      atualizarBandeiraPreview();
+      participantesForm = (eq.participantes || []).map(function (p) {
+        return {
+          id: proximoIdPart++,
+          nome: p.nome || '',
+          nomeDeGuerra: p.nomeDeGuerra || '',
+          postoGraduacao: p.postoGraduacao || '',
+          ehCapita: p.ehCapita === true,
+        };
+      });
+      if (participantesForm.length === 0) adicionarParticipante();
+      else renderParticipantes();
+      esconderErro('erroBannerEquipe');
+      formDirty = false;
+      mostrarTela('equipe');
+    }
+
+    function adicionarParticipante() {
+      if (participantesForm.length >= 3) {
+        mostrarToast('Máximo de 3 participantes (Art. 5º).', 'error');
+        return;
+      }
+      participantesForm.push({
+        id: proximoIdPart++,
+        nome: '', nomeDeGuerra: '', postoGraduacao: '',
+        ehCapita: participantesForm.length === 0,
+      });
+      renderParticipantes();
+      marcarDirty();
+    }
+
+    function removerParticipante(id) {
+      participantesForm = participantesForm.filter(function (p) { return p.id !== id; });
+      renderParticipantes();
+      marcarDirty();
+    }
+
+    function renderParticipantes() {
+      document.getElementById('contadorParts').textContent = '(' + participantesForm.length + ')';
+      const cont = document.getElementById('listaPartsForm');
+      cont.innerHTML = participantesForm.map(function (p, idx) {
+        const opcoesPosto = POSTOS.map(function (pp) {
+          return '<option value="' + escapeAttr(pp) + '"' + (p.postoGraduacao === pp ? ' selected' : '') + '>' + escapeHtml(pp) + '</option>';
+        }).join('');
+        const postoCustom = p.postoGraduacao && POSTOS.indexOf(p.postoGraduacao) < 0;
+        return (
+          '<div class="border border-slate-200 rounded p-2 space-y-1.5" data-id="' + p.id + '">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="text-xs font-bold text-slate-600">Participante ' + (idx + 1) + '</span>' +
+              '<button class="btn-danger text-xs px-1" data-remove="' + p.id + '" title="Remover">🗑️</button>' +
+            '</div>' +
+            '<input type="text" data-campo="nome" data-id="' + p.id + '" placeholder="Nome completo *" value="' + escapeAttr(p.nome) + '">' +
+            '<input type="text" data-campo="nomeDeGuerra" data-id="' + p.id + '" placeholder="Nome de guerra (ex: SOUZA)" value="' + escapeAttr(p.nomeDeGuerra) + '">' +
+            '<div class="grid grid-cols-2 gap-1.5">' +
+              '<select data-campo="postoGraduacao" data-id="' + p.id + '">' +
+                '<option value="">— Posto —</option>' +
+                opcoesPosto +
+                '<option value="__outro__"' + (postoCustom ? ' selected' : '') + '>Outro…</option>' +
+              '</select>' +
+              '<input type="text" data-campo="postoGraduacaoCustom" data-id="' + p.id + '" placeholder="Outro posto" value="' + escapeAttr(postoCustom ? p.postoGraduacao : '') + '"' + (postoCustom ? '' : ' style="display:none"') + '>' +
+            '</div>' +
+            '<label class="flex items-center gap-2 text-xs cursor-pointer">' +
+              '<input type="radio" name="capita" data-id="' + p.id + '"' + (p.ehCapita ? ' checked' : '') + '>' +
+              '<span>É a capitã da equipe</span>' +
+            '</label>' +
+          '</div>'
+        );
+      }).join('');
+
+      cont.querySelectorAll('input[data-campo], select[data-campo]').forEach(function (input) {
+        const evento = input.tagName === 'SELECT' ? 'change' : 'input';
+        input.addEventListener(evento, function () {
+          const id = Number(input.getAttribute('data-id'));
+          const campo = input.getAttribute('data-campo');
+          const p = participantesForm.find(function (x) { return x.id === id; });
+          if (!p) return;
+          if (campo === 'postoGraduacao') {
+            if (input.value === '__outro__') {
+              p.postoGraduacao = '';
+              // Mostra input customizado
+              const custom = cont.querySelector('input[data-campo="postoGraduacaoCustom"][data-id="' + id + '"]');
+              if (custom) { custom.style.display = ''; custom.focus(); }
+            } else {
+              p.postoGraduacao = input.value;
+              const custom = cont.querySelector('input[data-campo="postoGraduacaoCustom"][data-id="' + id + '"]');
+              if (custom) { custom.style.display = 'none'; custom.value = ''; }
+            }
+          } else if (campo === 'postoGraduacaoCustom') {
+            p.postoGraduacao = input.value;
+          } else {
+            p[campo] = input.value;
+          }
+          marcarDirty();
+        });
+      });
+      cont.querySelectorAll('input[type="radio"][name="capita"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          const id = Number(radio.getAttribute('data-id'));
+          participantesForm.forEach(function (p) { p.ehCapita = (p.id === id && radio.checked); });
+          marcarDirty();
+        });
+      });
+      cont.querySelectorAll('button[data-remove]').forEach(function (btn) {
+        btn.addEventListener('click', function () { removerParticipante(Number(btn.getAttribute('data-remove'))); });
+      });
+    }
+
+    function atualizarBandeiraPreview() {
+      const paisSel = document.getElementById('fPais').value;
+      const custom = document.getElementById('fBandeira').value.trim();
+      document.getElementById('fBandeiraPreview').textContent = custom || bandeiraPorPais[paisSel] || '🏳️';
+    }
+
+    function salvarEquipe() {
+      esconderErro('erroBannerEquipe');
+      const bandeiraCustom = document.getElementById('fBandeira').value.trim();
+      const pais = document.getElementById('fPais').value;
+      const ordemRaw = document.getElementById('fOrdemProva').value;
+      const payload = {
+        nomeOriginal: nomeOriginal,
+        equipe: {
+          nome: document.getElementById('fNome').value.trim(),
+          pais: pais,
+          corporacao: document.getElementById('fCorporacao').value.trim(),
+          unidadeSubnacional: document.getElementById('fUnidade').value.trim(),
+          bandeira: bandeiraCustom || bandeiraPorPais[pais] || '',
+          capita: '',
+          observacoes: document.getElementById('fObservacoes').value.trim(),
+          ordemProva: ordemRaw === '' ? '' : Number(ordemRaw),
+        },
+        participantes: participantesForm.map(function (p) {
+          return {
+            nome: p.nome.trim(),
+            nomeDeGuerra: p.nomeDeGuerra.trim(),
+            postoGraduacao: p.postoGraduacao.trim(),
+            ehCapita: p.ehCapita === true,
+          };
+        }),
+      };
+      const btn = document.getElementById('btnSalvarEquipe');
+      btn.disabled = true; btn.textContent = '⏳ Salvando…';
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          btn.disabled = false; btn.textContent = '💾 Salvar';
+          if (resp && resp.sucesso) {
+            mostrarToast(resp.mensagem || 'Salvo', 'success');
+            formDirty = false;
+            mostrarTela('lista'); carregarLista();
+          } else {
+            mostrarErroBanner('erroBannerEquipe', (resp && resp.erro) || 'Erro desconhecido');
+          }
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false; btn.textContent = '💾 Salvar';
+          mostrarErroBanner('erroBannerEquipe', err && err.message ? err.message : String(err));
+        })
+        .salvarEquipe(payload);
+    }
+
+    function confirmarExclusao(nome) {
+      if (!confirm('Excluir equipe "' + nome + '" e TODOS seus dados (participantes, resultado, penalidades)?\n\nEsta ação não pode ser desfeita.')) return;
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          if (resp && resp.sucesso) { mostrarToast(resp.mensagem || 'Excluída', 'success'); carregarLista(); }
+          else mostrarToast((resp && resp.erro) || 'Erro', 'error');
+        })
+        .withFailureHandler(function (err) { mostrarToast('Erro: ' + (err && err.message ? err.message : err), 'error'); })
+        .excluirEquipe(nome);
+    }
+
+    // ============================================================
+    // TELA DE PONTUAÇÃO (RESULTADO + PENALIDADES)
+    // ============================================================
+    function abrirTelaResultado(nomeEquipe) {
+      resultadoEquipe = nomeEquipe;
+      esconderErro('erroBannerResultado');
+      mostrarTela('resultado');
+      document.getElementById('rHeaderNome').textContent = 'Carregando…';
+      document.getElementById('rHeaderInfo').textContent = '';
+      document.getElementById('rHeaderBandeira').textContent = '⏳';
+      formResultadoDirty = false;
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          if (resp && resp.sucesso) {
+            resultadoDados = resp;
+            popularTelaResultado(resp);
+            formResultadoDirty = false;
+          } else {
+            mostrarErroBanner('erroBannerResultado', (resp && resp.erro) || 'Erro ao carregar');
+          }
+        })
+        .withFailureHandler(function (err) {
+          mostrarErroBanner('erroBannerResultado', err && err.message ? err.message : String(err));
+        })
+        .carregarResultadoDaEquipe(nomeEquipe);
+    }
+
+    function popularTelaResultado(d) {
+      const eq = d.equipe; const r = d.resultado;
+
+      document.getElementById('rHeaderBandeira').textContent = eq.bandeira || '🏳️';
+      document.getElementById('rHeaderNome').textContent = eq.nome;
+      const capDisplay = formatarCapita(eq);
+      document.getElementById('rHeaderInfo').textContent =
+        (eq.corporacao || eq.pais || '') + (capDisplay ? ' · ' + capDisplay : '');
+
+      // Status: só Concluída e Desclassificada têm radio
+      // "Em Prova" e "Aguardando" não têm radio — info contextual via banner
+      const statusAtual = r.status || '';
+      document.querySelectorAll('input[name="rStatus"]').forEach(function (radio) {
+        radio.checked = radio.value === statusAtual;
+      });
+      const banner = document.getElementById('rStatusAtualInfo');
+      if (statusAtual === 'Em Prova') {
+        const pista = r.pista ? ' (Pista ' + escapeHtml(r.pista) + ')' : '';
+        const hora = r.horaInicio ? ' às ' + escapeHtml(r.horaInicio) : '';
+        banner.innerHTML = '<span class="font-semibold text-red-800">⏱️ Equipe EM PROVA' + pista + hora + '</span><br>' +
+          '<span class="text-slate-600">Digite o tempo bruto para marcar como Concluída, ou selecione Desclassificada. Salvar sem mexer mantém "Em Prova".</span>';
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      document.getElementById('rPista').value = r.pista || '';
+      document.getElementById('rHoraInicio').value = parseHoraParaInput(r.horaInicio);
+      document.getElementById('rTempoBruto').value = r.tempoBrutoStr || '';
+      document.getElementById('rObservacoes').value = r.observacoes || '';
+
+      const selectDsq = document.getElementById('rMotivoDsq');
+      selectDsq.innerHTML = '<option value="">— Selecione —</option>';
+      (d.refDsq || []).forEach(function (item) {
+        const opt = document.createElement('option');
+        opt.value = item.item;
+        opt.textContent = 'Item ' + item.item + ' — ' + item.descricao;
+        selectDsq.appendChild(opt);
+      });
+      selectDsq.value = r.motivoDsq || '';
+
+      proximoIdPen = 1;
+      penalidadesForm = (d.penalidades || []).map(function (p) {
+        return {
+          id: proximoIdPen++,
+          item: p.item || '',
+          fase: p.fase || '',
+          fiscal: p.fiscal || '',
+          observacoes: p.observacoes || '',
+        };
+      });
+      renderPenalidades();
+
+      onStatusChange();
+      atualizarTempoTotalPreview();
+    }
+
+    function onStatusChange() {
+      const statusSelecionado = (document.querySelector('input[name="rStatus"]:checked') || {}).value || '';
+      const statusSalvo = (resultadoDados && resultadoDados.resultado && resultadoDados.resultado.status) || '';
+      // Status efetivo: o selecionado, ou preserva "Em Prova" se foi o salvo
+      const statusEfetivo = statusSelecionado || (statusSalvo === 'Em Prova' ? 'Em Prova' : '');
+
+      const mostrarExec = statusEfetivo === 'Em Prova' || statusEfetivo === 'Concluída';
+      const mostrarDsq = statusEfetivo === 'Desclassificada';
+      document.getElementById('rCamposExecucao').classList.toggle('hidden', !mostrarExec);
+      document.getElementById('rCamposDsq').classList.toggle('hidden', !mostrarDsq);
+    }
+
+    function aplicarMascaraTempoBruto(input) {
+      let v = (input.value || '').replace(/\D/g, '');
+      if (v.length > 6) v = v.substring(0, 6);
+      if (v.length === 0) input.value = '';
+      else if (v.length <= 2) input.value = v;
+      else if (v.length <= 4) input.value = v.substring(0, 2) + ':' + v.substring(2);
+      else input.value = v.substring(0, 2) + ':' + v.substring(2, 4) + '.' + v.substring(4);
+    }
+
+    // Quando o gestor entra um tempo bruto válido (mm:ss), assume que a equipe
+    // terminou a prova: muda o status automaticamente para "Concluída" se ainda
+    // estava em "Em Prova" ou sem status. Não mexe se já estava DSQ.
+    function autoMudarParaConcluida() {
+      const tempo = document.getElementById('rTempoBruto').value.trim();
+      // Aceita "mm:ss" ou "mm:ss.cc" como tempo completo válido
+      if (!/^\d{2}:\d{2}(?:\.\d{1,2})?$/.test(tempo)) return;
+      const statusAtual = (document.querySelector('input[name="rStatus"]:checked') || {}).value || '';
+      if (statusAtual === 'Concluída' || statusAtual === 'Desclassificada') return;
+      const radioConcluida = document.querySelector('input[name="rStatus"][value="Concluída"]');
+      if (radioConcluida) {
+        radioConcluida.checked = true;
+        onStatusChange();
+      }
+    }
+
+    function atualizarTempoTotalPreview() {
+      const tempo = document.getElementById('rTempoBruto').value.trim();
+      const nPen = penalidadesForm.length;
+      const segPen = nPen * 20;
+      const preview = document.getElementById('rTempoTotalPreview');
+      const breakdown = document.getElementById('rTempoTotalBreakdown');
+
+      // Aceita "mm:ss" ou "mm:ss.cc"
+      const m = tempo.match(/^(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?$/);
+      if (!m) {
+        preview.textContent = '—';
+        breakdown.textContent = nPen + ' penalidade(s) × 20s = ' + segPen + 's';
+        return;
+      }
+      // Padroniza centésimos para 2 dígitos
+      const cent = m[3] ? Number((m[3] + '0').substring(0, 2)) : 0;
+      const segBruto = Number(m[1]) * 60 + Number(m[2]) + cent / 100;
+      const segTotal = segBruto + segPen;
+
+      const totalCent = Math.round(segTotal * 100);
+      const mmOut = Math.floor(totalCent / 6000);
+      const ssOut = Math.floor((totalCent % 6000) / 100);
+      const ccOut = totalCent % 100;
+      const pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      preview.textContent = pad(mmOut) + ':' + pad(ssOut) + '.' + pad(ccOut);
+      breakdown.textContent = 'bruto ' + tempo + ' + ' + nPen + ' pen. × 20s';
+    }
+
+    // ============================================================
+    // PENALIDADES (dentro da tela de resultado)
+    // ============================================================
+    function adicionarPenalidade() {
+      penalidadesForm.push({
+        id: proximoIdPen++,
+        item: '', fase: '', fiscal: '', observacoes: '',
+      });
+      renderPenalidades();
+      atualizarTempoTotalPreview();
+      marcarDirtyResultado();
+    }
+
+    function removerPenalidade(id) {
+      penalidadesForm = penalidadesForm.filter(function (p) { return p.id !== id; });
+      renderPenalidades();
+      atualizarTempoTotalPreview();
+      marcarDirtyResultado();
+    }
+
+    function renderPenalidades() {
+      document.getElementById('contadorPenalidades').textContent = '(' + penalidadesForm.length + ')';
+      const cont = document.getElementById('listaPenalidades');
+      const refPen = (resultadoDados && resultadoDados.refPenalidades) || [];
+      if (penalidadesForm.length === 0) {
+        cont.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-2">Nenhuma penalidade registrada.</p>';
+        return;
+      }
+      cont.innerHTML = penalidadesForm.map(function (p, idx) {
+        const opcoesItem = refPen.map(function (it) {
+          const sel = String(p.item) === String(it.item) ? ' selected' : '';
+          const truncDesc = it.descricao.length > 60 ? it.descricao.substring(0, 57) + '…' : it.descricao;
+          return '<option value="' + escapeAttr(it.item) + '"' + sel + '>' + it.item + ' — ' + escapeHtml(truncDesc) + '</option>';
+        }).join('');
+        return (
+          '<div class="border border-slate-200 rounded p-2 space-y-1.5 bg-slate-50" data-pen-id="' + p.id + '">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="text-xs font-bold text-slate-600">Penalidade ' + (idx + 1) + ' (+20s)</span>' +
+              '<button class="btn-danger text-xs px-1" data-pen-remove="' + p.id + '">🗑️</button>' +
+            '</div>' +
+            '<select data-pen-campo="item" data-id="' + p.id + '">' +
+              '<option value="">— Item do edital —</option>' + opcoesItem +
+            '</select>' +
+            '<select data-pen-campo="fase" data-id="' + p.id + '">' +
+              '<option value="">— Fase —</option>' +
+              FASES.map(function (f) {
+                return '<option value="' + f.num + '"' + (p.fase === f.num ? ' selected' : '') +
+                  '>FASE ' + f.num + ' – ' + escapeHtml(f.nome) + '</option>';
+              }).join('') +
+            '</select>' +
+            '<input type="text" list="fiscaisRecentes" data-pen-campo="fiscal" data-id="' + p.id + '" placeholder="Fiscal (opcional)" value="' + escapeAttr(p.fiscal) + '">' +
+            '<input type="text" data-pen-campo="observacoes" data-id="' + p.id + '" placeholder="Observações (opcional)" value="' + escapeAttr(p.observacoes) + '">' +
+          '</div>'
+        );
+      }).join('');
+      cont.querySelectorAll('[data-pen-campo]').forEach(function (el) {
+        const evento = (el.tagName === 'SELECT') ? 'change' : 'input';
+        el.addEventListener(evento, function () {
+          const id = Number(el.getAttribute('data-id'));
+          const campo = el.getAttribute('data-pen-campo');
+          const p = penalidadesForm.find(function (x) { return x.id === id; });
+          if (p) p[campo] = el.value;
+          marcarDirtyResultado();
+        });
+      });
+      cont.querySelectorAll('button[data-pen-remove]').forEach(function (btn) {
+        btn.addEventListener('click', function () { removerPenalidade(Number(btn.getAttribute('data-pen-remove'))); });
+      });
+    }
+
+    function salvarResultado() {
+      esconderErro('erroBannerResultado');
+      let status = (document.querySelector('input[name="rStatus"]:checked') || {}).value;
+      const statusSalvo = (resultadoDados && resultadoDados.resultado && resultadoDados.resultado.status) || '';
+      // Sem radio selecionado: preserva "Em Prova" se era o status atual
+      // (caso comum: gestor abre Pontuação só para adicionar uma penalidade durante a prova)
+      if (!status) {
+        if (statusSalvo === 'Em Prova') status = 'Em Prova';
+        else return mostrarErroBanner('erroBannerResultado', 'Selecione um status (Concluída ou Desclassificada).');
+      }
+      const payload = {
+        nomeEquipe: resultadoEquipe,
+        resultado: {
+          status: status,
+          pista: document.getElementById('rPista').value,
+          ordem: '', // Ordem agora vem de ordem_prova da Equipe — campo removido
+          horaInicio: document.getElementById('rHoraInicio').value,
+          tempoBrutoStr: document.getElementById('rTempoBruto').value.trim(),
+          motivoDsq: document.getElementById('rMotivoDsq').value,
+          observacoes: document.getElementById('rObservacoes').value.trim(),
+        },
+        penalidades: penalidadesForm.map(function (p) {
+          return {
+            item: p.item, fase: p.fase, fiscal: p.fiscal, observacoes: p.observacoes,
+          };
+        }),
+      };
+
+      // Guarda fiscais para autocomplete futuro
+      payload.penalidades.forEach(function (p) { addFiscalRecente(p.fiscal); });
+
+      const btn = document.getElementById('btnSalvarResultado');
+      btn.disabled = true; btn.textContent = '⏳ Salvando…';
+      google.script.run
+        .withSuccessHandler(function (resp) {
+          btn.disabled = false; btn.textContent = '💾 Salvar';
+          if (resp && resp.sucesso) {
+            mostrarToast(resp.mensagem || 'Salvo', 'success');
+            formResultadoDirty = false;
+            mostrarTela('lista'); carregarLista();
+          } else {
+            mostrarErroBanner('erroBannerResultado', (resp && resp.erro) || 'Erro desconhecido');
+          }
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false; btn.textContent = '💾 Salvar';
+          mostrarErroBanner('erroBannerResultado', err && err.message ? err.message : String(err));
+        })
+        .salvarResultadoCompleto(payload);
+    }
+
+    // ============================================================
+    // AUTOCOMPLETE DE FISCAL (localStorage)
+    // ============================================================
+    function getFiscaisRecentes() {
+      try {
+        return JSON.parse(localStorage.getItem(CHAVE_FISCAIS) || '[]');
+      } catch (e) { return []; }
+    }
+    function addFiscalRecente(nome) {
+      const v = (nome || '').trim();
+      if (!v) return;
+      let lista = getFiscaisRecentes().filter(function (f) { return f !== v; });
+      lista.unshift(v);
+      lista = lista.slice(0, MAX_FISCAIS);
+      try { localStorage.setItem(CHAVE_FISCAIS, JSON.stringify(lista)); } catch (e) {}
+      atualizarDatalistFiscais();
+    }
+    function atualizarDatalistFiscais() {
+      const dl = document.getElementById('fiscaisRecentes');
+      if (!dl) return;
+      dl.innerHTML = getFiscaisRecentes().map(function (f) {
+        return '<option value="' + escapeAttr(f) + '">';
+      }).join('');
+    }
+
+    // ============================================================
+    // NAVEGAÇÃO E UTILITÁRIOS
+    // ============================================================
+    function mostrarTela(qual) {
+      telaAtual = qual;
+      document.getElementById('telaLista').classList.toggle('hidden', qual !== 'lista');
+      document.getElementById('telaEquipe').classList.toggle('hidden', qual !== 'equipe');
+      document.getElementById('telaResultado').classList.toggle('hidden', qual !== 'resultado');
+    }
+
+    function mostrarErroBanner(idBanner, msg) {
+      const b = document.getElementById(idBanner);
+      b.textContent = '⚠️ ' + msg;
+      b.classList.remove('hidden');
+      b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function esconderErro(idBanner) { document.getElementById(idBanner).classList.add('hidden'); }
+
+    function mostrarToast(msg, tipo) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast toast-' + (tipo || 'success');
+      setTimeout(function () { t.classList.add('hidden'); }, 3000);
+    }
+
+    function horaAtualHHMM() {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return hh + ':' + mm;
+    }
+
+    function parseHoraParaInput(val) {
+      if (!val) return '';
+      const s = String(val).trim();
+      const m = s.match(/^(\d{1,2}):(\d{2})/);
+      if (m) {
+        const h = m[1].length === 1 ? '0' + m[1] : m[1];
+        return h + ':' + m[2];
+      }
+      return '';
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+  </script>
+</body>
+</html>

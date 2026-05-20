@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Bombeira de Garra — ENBOM 2026</title>
+  <style>
+    /* ============================================================
+       CSS precompilado (substitui Tailwind CDN para carregamento rápido)
+       Inclui só as classes efetivamente usadas neste painel.
+       ============================================================ */
+    *,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%;line-height:1.5}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#0f172a;min-height:100vh;padding-bottom:3rem}
+    h1,h2,h3,h4,p{margin:0}
+    button{font:inherit;color:inherit;background:none;cursor:pointer;border:0}
+    input{font:inherit}
+    a{color:inherit;text-decoration:underline}
+
+    /* layout */
+    .min-h-screen{min-height:100vh}
+    .pb-12{padding-bottom:3rem}.mt-8{margin-top:2rem}.mt-3{margin-top:.75rem}.mt-2{margin-top:.5rem}.mt-1{margin-top:.25rem}
+    .mb-2{margin-bottom:.5rem}.mb-1{margin-bottom:.25rem}
+    .mr-2{margin-right:.5rem}.mr-1{margin-right:.25rem}.ml-auto{margin-left:auto}
+    .pt-3{padding-top:.75rem}.pt-2{padding-top:.5rem}
+    .py-12{padding-top:3rem;padding-bottom:3rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}
+    .px-4{padding-left:1rem;padding-right:1rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}
+    .p-4{padding:1rem}.p-3{padding:.75rem}
+    .space-y-4 > * + *{margin-top:1rem}.space-y-2 > * + *{margin-top:.5rem}
+
+    /* flex/grid */
+    .flex{display:flex}.inline-block{display:inline-block}.hidden{display:none}
+    .items-center{align-items:center}.items-start{align-items:flex-start}
+    .justify-between{justify-content:space-between}
+    .gap-3{gap:.75rem}.gap-2{gap:.5rem}
+    .flex-1{flex:1 1 0%}.min-w-0{min-width:0}
+    .w-8{width:2rem}.w-full{width:100%}.h-8{height:2rem}
+
+    /* posição */
+    .sticky{position:sticky}.top-0{top:0}.z-10{z-index:10}
+
+    /* tipografia */
+    .text-center{text-align:center}.text-right{text-align:right}
+    .text-3xl{font-size:1.875rem;line-height:2.25rem}
+    .text-lg{font-size:1.125rem;line-height:1.75rem}
+    .text-sm{font-size:.875rem;line-height:1.25rem}
+    .text-xs{font-size:.75rem;line-height:1rem}
+    .font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}.font-normal{font-weight:400}
+    .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Courier New',monospace}
+    .leading-tight{line-height:1.25}
+    .uppercase{text-transform:uppercase}
+    .tracking-wide{letter-spacing:.025em}
+    .line-through{text-decoration:line-through}
+    .italic{font-style:italic}
+    .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .whitespace-nowrap{white-space:nowrap}
+
+    /* cores texto */
+    .text-white{color:#fff}
+    .text-slate-900{color:#0f172a}.text-slate-700{color:#334155}.text-slate-600{color:#475569}.text-slate-500{color:#64748b}.text-slate-400{color:#94a3b8}
+    .text-red-800{color:#991b1b}.text-red-700{color:#b91c1c}
+
+    /* cores fundo */
+    .bg-slate-100{background:#f1f5f9}.bg-slate-50{background:#f8fafc}.bg-slate-200{background:#e2e8f0}
+    .bg-white{background:#fff}
+    .bg-red-50{background:#fef2f2}.bg-red-100{background:#fee2e2}.bg-red-600{background:#dc2626}
+    .bg-amber-100{background:#fef3c7}
+    .bg-orange-100{background:#ffedd5}
+    .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-from,#b91c1c),var(--tw-to,#991b1b))}
+    .from-red-700{--tw-from:#b91c1c}.to-red-800{--tw-to:#991b1b}
+    .bg-white\/20{background:rgba(255,255,255,.2)}
+    .hover\:bg-white\/30:hover{background:rgba(255,255,255,.3)}
+    .active\:bg-white\/40:active{background:rgba(255,255,255,.4)}
+
+    /* opacidade */
+    .opacity-90{opacity:.9}.opacity-80{opacity:.8}
+
+    /* bordas */
+    .border{border-width:1px;border-style:solid}
+    .border-2{border-width:2px;border-style:solid}
+    .border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-300{border-color:#cbd5e1}.border-slate-400{border-color:#94a3b8}
+    .border-red-200{border-color:#fecaca}.border-red-300{border-color:#fca5a5}.border-red-400{border-color:#f87171}
+    .border-amber-400{border-color:#fbbf24}.border-orange-400{border-color:#fb923c}
+    .border-t-transparent{border-top-color:transparent}
+    .last\:border-0:last-child{border:0}
+    .rounded{border-radius:.25rem}.rounded-lg{border-radius:.5rem}.rounded-full{border-radius:9999px}
+
+    /* sombra */
+    .shadow-lg{box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1)}
+
+    /* cursor */
+    .cursor-pointer{cursor:pointer}
+
+    /* animações */
+    .animate-spin{animation:spin 1s linear infinite}
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+    /* ============================================================
+       Estilos próprios (originais)
+       ============================================================ */
+    .pulse-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;margin-right:6px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+    .card{transition:transform .2s;cursor:pointer}
+    .card:active{transform:scale(.98)}
+    .card .chevron{transition:transform .2s;display:inline-block}
+    .card.expanded .chevron{transform:rotate(180deg)}
+    .funcao-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:9999px;vertical-align:middle}
+    .funcao-capita{background:#fef3c7;color:#92400e}
+    .funcao-combatente{background:#dbeafe;color:#1e40af}
+    .flag-img{display:inline-block;height:1.1em;width:auto;vertical-align:-2px;border-radius:2px;margin-right:2px;box-shadow:0 0 0 1px rgba(0,0,0,.1);object-fit:cover}
+    .flag-img.lg{height:1.6em;vertical-align:-4px}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:4px;vertical-align:middle;box-shadow:0 0 0 0 rgba(74,222,128,.7);animation:livePulse 2s ease-out infinite}
+    @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.7)}70%{box-shadow:0 0 0 6px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+
+    /* spinner de loading inicial */
+    .loading-spinner{width:2rem;height:2rem;border:4px solid #dc2626;border-top-color:transparent;border-radius:9999px;display:inline-block;animation:spin 1s linear infinite}
+  </style>
+</head>
+<body>
+
+  <header class="bg-gradient-to-r from-red-700 to-red-800 text-white sticky top-0 z-10 shadow-lg">
+    <div class="px-4 py-3">
+      <h1 class="text-lg font-bold leading-tight">🚒 BOMBEIRA DE GARRA</h1>
+      <p class="text-xs opacity-90" id="subtitulo">XI ENBOM 2026 — CBMAC</p>
+      <div class="flex items-center justify-between mt-2 text-xs gap-2">
+        <span class="opacity-80 flex items-center gap-2 min-w-0 flex-1">
+          <span id="indicadorAoVivo" class="hidden whitespace-nowrap" title="Verifica atualizações a cada 60s">
+            <span class="live-dot"></span>ao vivo
+          </span>
+          <span id="ultimaAtualizacao" class="truncate">Carregando…</span>
+        </span>
+        <button id="btnAtualizar" class="bg-white/20 hover:bg-white/30 active:bg-white/40 rounded px-3 py-1 font-medium whitespace-nowrap">
+          🔄 Atualizar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="px-3 pt-3 space-y-4">
+    <div id="loading" class="text-center py-12 text-slate-500">
+      <div class="loading-spinner"></div>
+      <p class="mt-3 text-sm">Carregando dados…</p>
+    </div>
+  </main>
+
+  <footer class="mt-8 px-4 text-center text-xs text-slate-500">
+    <p>Painel oficial — ENBOM 2026 / CBMAC</p>
+  </footer>
+
+  <script>
+    // ============================================================
+    // CONFIGURAÇÃO
+    // ============================================================
+    // SUBSTITUA pela URL do seu Web App do Apps Script (Implantar → Gerenciar implantações).
+    // A URL termina em /exec (sem barra no final).
+    const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbwj1OKFKLZUCmMz3taw4B7TMCZbKr1rII0vAhHMcnhKNSdMcCR1_bjPc4WsLpk9c7YF/exec';
+
+    const INTERVALO_VERIFICACAO_MS = 60000; // 60s
+    let versaoConhecida = null;
+    let timerVerificacao = null;
+
+    document.getElementById('btnAtualizar').addEventListener('click', carregarDados);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) verificarAtualizacoes();
+    });
+
+    if (URL_APPS_SCRIPT.indexOf('COLE_AQUI') === 0) {
+      mostrarErro({ message: 'Configure a constante URL_APPS_SCRIPT no topo do <script> com a URL do seu Web App.' });
+    } else {
+      carregarDados();
+      iniciarVerificacaoAutomatica();
+    }
+
+    function iniciarVerificacaoAutomatica() {
+      if (timerVerificacao) clearInterval(timerVerificacao);
+      timerVerificacao = setInterval(verificarAtualizacoes, INTERVALO_VERIFICACAO_MS);
+      document.getElementById('indicadorAoVivo').classList.remove('hidden');
+    }
+
+    function verificarAtualizacoes() {
+      if (document.hidden) return;
+      fetch(URL_APPS_SCRIPT + '?api=versao')
+        .then(function (r) { return r.json(); })
+        .then(function (resp) {
+          const novaVersao = (resp && resp.cacheVersion) || '';
+          if (versaoConhecida && novaVersao && novaVersao !== versaoConhecida) {
+            carregarDados();
+          }
+        })
+        .catch(function () { /* silencia falhas de polling */ });
+    }
+
+    function carregarDados() {
+      document.getElementById('conteudo').innerHTML =
+        '<div class="text-center py-12 text-slate-500">' +
+          '<div class="loading-spinner"></div>' +
+          '<p class="mt-3 text-sm">Carregando dados…</p>' +
+        '</div>';
+      fetch(URL_APPS_SCRIPT + '?api=dados')
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(renderizar)
+        .catch(mostrarErro);
+    }
+
+    function mostrarErro(err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      document.getElementById('conteudo').innerHTML =
+        '<div class="bg-red-100 border border-red-300 text-red-800 rounded p-4 mt-3">' +
+          '<p class="font-bold">Erro ao carregar dados</p>' +
+          '<p class="text-sm mt-1">' + escapeHtml(msg) + '</p>' +
+          '<button onclick="carregarDados()" class="mt-3 bg-red-600 text-white rounded px-3 py-1 text-sm">Tentar de novo</button>' +
+        '</div>';
+    }
+
+    let equipesPorNome = {};
+    let penalidadesPorEquipe = {};
+
+    function renderizar(dados) {
+      document.getElementById('subtitulo').textContent =
+        (dados.titulo || 'ENBOM 2026') + (dados.local ? ' — ' + dados.local : '');
+      document.getElementById('ultimaAtualizacao').textContent =
+        '🕒 ' + formatarHoraISO(dados.ultimaAtualizacao);
+
+      equipesPorNome = {};
+      (dados.equipes || []).forEach(function (e) { equipesPorNome[e.nome] = e; });
+      penalidadesPorEquipe = dados.penalidadesPorEquipe || {};
+      versaoConhecida = dados.cacheVersion || '';
+
+      const html = [];
+      html.push(renderPodio(dados.resultados.podio));
+      html.push(renderEmProva(dados.resultados.emProva));
+      html.push(renderAguardando(dados.resultados.aguardando));
+      html.push(renderConcluidas(dados.resultados.concluidas));
+      html.push(renderDesclassificadas(dados.resultados.desclassificadas));
+
+      document.getElementById('conteudo').innerHTML = html.filter(Boolean).join('');
+      ativarTogglesCards();
+    }
+
+    // ============================================================
+    // SEÇÕES
+    // ============================================================
+
+    function renderPodio(podio) {
+      if (!podio || podio.length === 0) return '';
+      const medalhas = ['🥇', '🥈', '🥉'];
+      const cores = ['bg-amber-100 border-amber-400', 'bg-slate-200 border-slate-400', 'bg-orange-100 border-orange-400'];
+      const items = podio.map(function (eq, i) {
+        return (
+          '<div class="card ' + cores[i] + ' border-2 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="flex items-center gap-3">' +
+              '<div class="text-3xl">' + medalhas[i] + '</div>' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="font-bold truncate">' +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
+                  escapeHtml(eq.equipe) +
+                  renderCapitaInline(eq.equipe) +
+                  ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                '</div>' +
+                '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+              '</div>' +
+              '<div class="text-right">' +
+                '<div class="font-mono font-bold text-lg">' + escapeHtml(eq.tempoTotalStr) + '</div>' +
+                '<div class="text-xs text-slate-600">' +
+                  'bruto ' + escapeHtml(eq.tempoBrutoStr || '—') + ' + ' + eq.qtdPenalidades + ' pen.' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            renderDetalhesEquipe(eq.equipe) +
+          '</div>'
+        );
+      }).join('');
+      return (
+        '<section>' +
+          '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">🏆 PÓDIO</h2>' +
+          '<div class="space-y-2">' + items + '</div>' +
+        '</section>'
+      );
+    }
+
+    function renderEmProva(emProva) {
+      if (!emProva || emProva.length === 0) return '';
+      const items = emProva.map(function (eq) {
+        return (
+          '<div class="card bg-red-50 border border-red-200 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="pulse-dot"></span>' +
+              '<span class="font-bold truncate flex-1 min-w-0">' +
+                escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
+                renderCapitaInline(eq.equipe) +
+              '</span>' +
+              '<span class="chevron text-xs text-slate-500">▾</span>' +
+              (eq.pista ? '<span class="ml-auto text-xs bg-red-600 text-white px-2 py-0.5 rounded">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
+            '</div>' +
+            (eq.horaInicio ? '<div class="text-xs text-slate-600 mt-1">Início: ' + escapeHtml(eq.horaInicio) + '</div>' : '') +
+            renderDetalhesEquipe(eq.equipe) +
+          '</div>'
+        );
+      }).join('');
+      return (
+        '<section>' +
+          '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">⏱️ EM PROVA</h2>' +
+          '<div class="space-y-2">' + items + '</div>' +
+        '</section>'
+      );
+    }
+
+    function renderAguardando(aguardando) {
+      if (!aguardando || aguardando.length === 0) return '';
+      const items = aguardando.map(function (eq, i) {
+        const ordemDisplay = (eq.ordemProva != null && eq.ordemProva !== '')
+          ? eq.ordemProva : (i + 1);
+        return (
+          '<div class="card bg-white border border-slate-200 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="flex items-center gap-3">' +
+              '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="font-bold truncate">' +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
+                  escapeHtml(eq.equipe) +
+                  renderCapitaInline(eq.equipe) +
+                  ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                '</div>' +
+                '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+              '</div>' +
+            '</div>' +
+            renderDetalhesEquipe(eq.equipe) +
+          '</div>'
+        );
+      }).join('');
+      return (
+        '<section>' +
+          '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">⏳ AGUARDANDO (' + aguardando.length + ')</h2>' +
+          '<div class="space-y-2">' + items + '</div>' +
+        '</section>'
+      );
+    }
+
+    function renderConcluidas(concluidas) {
+      if (!concluidas || concluidas.length === 0) return '';
+      const items = concluidas.map(function (eq, i) {
+        return (
+          '<div class="card bg-white border border-slate-200 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="flex items-start gap-3">' +
+              '<div class="font-bold text-slate-400 text-lg w-8">' + (i + 1) + 'º</div>' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="font-bold truncate">' +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
+                  escapeHtml(eq.equipe) +
+                  renderCapitaInline(eq.equipe) +
+                  ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                '</div>' +
+                '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+              '</div>' +
+              '<div class="text-right">' +
+                '<div class="font-mono font-bold text-lg">' + escapeHtml(eq.tempoTotalStr) + '</div>' +
+                '<div class="text-xs text-slate-500">' +
+                  'bruto ' + escapeHtml(eq.tempoBrutoStr) + ' + ' + eq.qtdPenalidades + ' pen.' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            renderDetalhesEquipe(eq.equipe) +
+          '</div>'
+        );
+      }).join('');
+      return (
+        '<section>' +
+          '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">✅ CONCLUÍDAS (' + concluidas.length + ')</h2>' +
+          '<div class="space-y-2">' + items + '</div>' +
+        '</section>'
+      );
+    }
+
+    function renderDesclassificadas(dsq) {
+      if (!dsq || dsq.length === 0) return '';
+      const items = dsq.map(function (eq) {
+        return (
+          '<div class="card bg-slate-50 border border-slate-300 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="flex items-center gap-2">' +
+              '<div class="font-bold text-slate-700 line-through truncate flex-1 min-w-0">' +
+                escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
+                renderCapitaInline(eq.equipe) +
+              '</div>' +
+              '<span class="chevron text-xs text-slate-500">▾</span>' +
+            '</div>' +
+            (eq.motivoDsqTexto
+              ? '<div class="text-xs text-red-700 mt-1">⚠️ ' + escapeHtml(eq.motivoDsqTexto) + '</div>'
+              : '<div class="text-xs text-slate-500 mt-1">Desclassificada</div>') +
+            renderDetalhesEquipe(eq.equipe) +
+          '</div>'
+        );
+      }).join('');
+      return (
+        '<section>' +
+          '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">❌ DESCLASSIFICADAS (' + dsq.length + ')</h2>' +
+          '<div class="space-y-2">' + items + '</div>' +
+        '</section>'
+      );
+    }
+
+    const NOMES_FASES = {
+      'I':   'EQUIPAGEM',
+      'II':  'MONTAGEM DE LINHA',
+      'III': 'TRANSPOSIÇÃO',
+      'IV':  'LOCALIZAÇÃO DA VÍTIMA',
+      'V':   'ARROMBAMENTO',
+    };
+    function formatarFase(fase) {
+      const k = String(fase || '').trim();
+      if (!k) return 'Fase ?';
+      const nome = NOMES_FASES[k];
+      return nome ? ('Fase ' + k + ' – ' + nome) : ('Fase ' + k);
+    }
+
+    function formatarParticipante(p) {
+      if (!p) return '';
+      const guerra = String(p.nomeDeGuerra || '').trim().toUpperCase();
+      const posto = String(p.postoGraduacao || '').trim();
+      if (guerra) return (posto ? posto + ' ' : '') + guerra;
+      const nomeFb = String(p.nome || '').trim();
+      return (posto ? posto + ' ' : '') + nomeFb;
+    }
+
+    function obterDisplayCapita(nomeEquipe) {
+      const equipe = equipesPorNome[nomeEquipe];
+      if (!equipe) return '';
+      const capitaPart = (equipe.participantes || []).find(function (p) { return p.ehCapita; });
+      if (capitaPart) return formatarParticipante(capitaPart) + ' - Cap da Equipe';
+      if (equipe.capita) return String(equipe.capita).trim() + ' - Cap da Equipe';
+      return '';
+    }
+
+    function renderCapitaInline(nomeEquipe) {
+      const display = obterDisplayCapita(nomeEquipe);
+      if (!display) return '';
+      return ' <span class="text-xs font-normal text-slate-500 whitespace-nowrap">· ' + escapeHtml(display) + '</span>';
+    }
+
+    function renderDetalhesEquipe(nomeEquipe) {
+      const equipe = equipesPorNome[nomeEquipe];
+      const participantes = (equipe && equipe.participantes) || [];
+      const penalidades = penalidadesPorEquipe[nomeEquipe] || [];
+
+      const partHtml = participantes.length === 0
+        ? '<div class="text-xs text-slate-400 italic">Nenhuma participante cadastrada</div>'
+        : participantes.map(function (p) {
+            const display = formatarParticipante(p);
+            const badge = p.ehCapita
+              ? '<span class="funcao-badge funcao-capita">CAP. DA EQUIPE</span>'
+              : '';
+            const nomeCompleto = (p.nome && p.nome.trim() && p.nomeDeGuerra && p.nome.trim().toUpperCase() !== String(p.nomeDeGuerra).trim().toUpperCase())
+              ? '<div class="text-slate-500" style="font-size: 10px;">' + escapeHtml(p.nome) + '</div>'
+              : '';
+            return (
+              '<div class="text-xs text-slate-700 py-1 border-b border-slate-100 last:border-0">' +
+                '<div class="flex items-center justify-between gap-2">' +
+                  '<div class="flex-1 min-w-0">' +
+                    '<span class="font-bold uppercase tracking-wide">' + escapeHtml(display) + '</span>' +
+                    nomeCompleto +
+                  '</div>' +
+                  badge +
+                '</div>' +
+              '</div>'
+            );
+          }).join('');
+
+      const penHtml = penalidades.length === 0
+        ? ''
+        : '<div class="mt-3 pt-2 border-t border-slate-200">' +
+            '<div class="text-xs font-bold text-slate-600 mb-1">⚠️ Penalidades (' + penalidades.length + ')</div>' +
+            penalidades.map(function (p) {
+              return '<div class="text-xs text-slate-700 py-0.5">' +
+                '<span class="font-semibold">' + escapeHtml(formatarFase(p.fase)) + ':</span> ' +
+                'Item ' + escapeHtml(p.item) + ' — ' + escapeHtml(p.descricao) +
+                '</div>';
+            }).join('') +
+          '</div>';
+
+      return (
+        '<div class="detalhes hidden mt-3 pt-2 border-t border-slate-200">' +
+          '<div class="text-xs font-bold text-slate-600 mb-1">👥 Equipe (' + participantes.length + ')</div>' +
+          partHtml +
+          penHtml +
+        '</div>'
+      );
+    }
+
+    function ativarTogglesCards() {
+      document.querySelectorAll('.card[data-equipe]').forEach(function (card) {
+        card.addEventListener('click', function (ev) {
+          if (ev.target.closest('a, button')) return;
+          const det = card.querySelector('.detalhes');
+          if (!det) return;
+          det.classList.toggle('hidden');
+          card.classList.toggle('expanded');
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function formatarHoraISO(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      } catch (e) {
+        return iso || '';
+      }
+    }
+  </script>
+</body>
+</html>

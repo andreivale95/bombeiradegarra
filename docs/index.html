@@ -338,31 +338,85 @@
 
     function renderAguardando(aguardando) {
       if (!aguardando || aguardando.length === 0) return '';
-      const items = aguardando.map(function (eq, i) {
-        const ordemDisplay = (eq.ordemProva != null && eq.ordemProva !== '')
-          ? eq.ordemProva : (i + 1);
-        return (
-          '<div class="card bg-white border border-slate-300 border-l-4 border-l-slate-400 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
-            '<div class="flex items-center gap-3">' +
-              '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
-              '<div class="flex-1 min-w-0">' +
-                '<div class="font-bold truncate">' +
-                                    escapeHtml(eq.equipe) +
-                  renderCapitaInline(eq.equipe) +
-                  ' <span class="chevron text-xs text-slate-500">▾</span>' +
+
+      // Agrupa equipes com mesmo ordemProva (competem simultaneamente)
+      const grupos = [];
+      aguardando.forEach(function (eq) {
+        const temOrdem = eq.ordemProva != null && eq.ordemProva !== '';
+        const ultimo = grupos[grupos.length - 1];
+        if (temOrdem && ultimo && ultimo.ordemNum === eq.ordemProva) {
+          ultimo.equipes.push(eq);
+        } else {
+          grupos.push({ ordemNum: temOrdem ? eq.ordemProva : null, equipes: [eq] });
+        }
+      });
+
+      let fallback = 0;
+      const html = grupos.map(function (grupo) {
+        const simultaneas = grupo.equipes.length >= 2;
+
+        if (simultaneas) {
+          const cardsHtml = grupo.equipes.map(function (eq) {
+            return (
+              '<div class="card bg-white p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+                '<div class="flex items-center gap-3">' +
+                  '<div class="flex-1 min-w-0">' +
+                    '<div class="font-bold truncate">' +
+                      escapeHtml(eq.equipe) +
+                      renderCapitaInline(eq.equipe) +
+                      ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                    '</div>' +
+                    '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+                  '</div>' +
+                  (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
                 '</div>' +
-                '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+                renderDetalhesEquipe(eq.equipe) +
+              '</div>'
+            );
+          });
+          const separador =
+            '<div class="flex items-center gap-2 px-3 py-0.5 bg-amber-50">' +
+              '<div class="flex-1 border-t border-dashed border-amber-300"></div>' +
+              '<span class="text-xs font-bold text-amber-500">VS</span>' +
+              '<div class="flex-1 border-t border-dashed border-amber-300"></div>' +
+            '</div>';
+          return (
+            '<div class="border border-amber-300 border-l-4 border-l-amber-400 rounded-lg overflow-hidden">' +
+              '<div class="bg-amber-50 px-3 py-1 flex items-center gap-2 border-b border-amber-200">' +
+                '<span class="font-bold text-amber-800 text-xs">' + grupo.ordemNum + 'ª chave</span>' +
+                '<span class="text-amber-500 text-xs">· simultâneas</span>' +
               '</div>' +
-              (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
-            '</div>' +
-            renderDetalhesEquipe(eq.equipe) +
-          '</div>'
-        );
+              cardsHtml.join(separador) +
+            '</div>'
+          );
+        } else {
+          const eq = grupo.equipes[0];
+          fallback++;
+          const ordemDisplay = grupo.ordemNum != null ? grupo.ordemNum : fallback;
+          return (
+            '<div class="card bg-white border border-slate-300 border-l-4 border-l-slate-400 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+              '<div class="flex items-center gap-3">' +
+                '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
+                '<div class="flex-1 min-w-0">' +
+                  '<div class="font-bold truncate">' +
+                    escapeHtml(eq.equipe) +
+                    renderCapitaInline(eq.equipe) +
+                    ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                  '</div>' +
+                  '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
+                '</div>' +
+                (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
+              '</div>' +
+              renderDetalhesEquipe(eq.equipe) +
+            '</div>'
+          );
+        }
       }).join('');
+
       return (
         '<section>' +
           '<h2 class="font-bold text-slate-700 text-sm mb-2 px-1">⏳ AGUARDANDO (' + aguardando.length + ')</h2>' +
-          '<div class="space-y-2">' + items + '</div>' +
+          '<div class="space-y-2">' + html + '</div>' +
         '</section>'
       );
     }

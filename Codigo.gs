@@ -716,6 +716,7 @@ function salvarPistaAguardando(nomeEquipe, pista) {
       abaR.getRange(linhaR, 5).setValue('Aguardando');
     }
 
+    SpreadsheetApp.flush();
     CacheService.getScriptCache().remove(CHAVE_CACHE);
     gravarConfig('cache_version', new Date().toISOString());
     return { sucesso: true };

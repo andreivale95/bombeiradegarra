@@ -633,7 +633,7 @@
 
       // Checkbox apenas para "aguardando"
       const checkbox = status === 'aguardando'
-        ? '<input type="checkbox" class="mr-1" data-equipe-check="' + escapeAttr(eq.nome) + '"' +
+        ? '<input type="checkbox" class="mr-1 w-5 h-5 cursor-pointer accent-red-600" data-equipe-check="' + escapeAttr(eq.nome) + '"' +
             (selecionadas.has(eq.nome) ? ' checked' : '') + '>'
         : '';
 
@@ -723,7 +723,7 @@
 
     function confirmarIniciarLote() {
       const selecoes = [];
-      document.querySelectorAll('select[data-pista-equipe]').forEach(function (sel) {
+      document.querySelectorAll('#modalSelecoes select[data-pista-equipe]').forEach(function (sel) {
         selecoes.push({
           equipe: sel.getAttribute('data-pista-equipe'),
           pista: sel.value,

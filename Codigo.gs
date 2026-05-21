@@ -114,8 +114,9 @@ function abrirGerenciador() {
   const html = HtmlService.createTemplateFromFile('GerenciarEquipes')
     .evaluate()
     .setTitle('Gerenciador ENBOM')
-    .setWidth(1080);
-  SpreadsheetApp.getUi().showSidebar(html);
+    .setWidth(1080)
+    .setHeight(800);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Gerenciador ENBOM');
 }
 
 // Alias mantido para compatibilidade

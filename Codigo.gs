@@ -717,6 +717,7 @@ function salvarPistaAguardando(nomeEquipe, pista) {
     }
 
     CacheService.getScriptCache().remove(CHAVE_CACHE);
+    gravarConfig('cache_version', new Date().toISOString());
     return { sucesso: true };
   } catch (e) {
     return { sucesso: false, erro: e.message };

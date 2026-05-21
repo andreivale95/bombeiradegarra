@@ -39,6 +39,10 @@
     .pill-emprova { background: #fee2e2; color: #991b1b; }
     .pill-concluida { background: #dcfce7; color: #166534; }
     .pill-dsq { background: #e2e8f0; color: #475569; }
+    /* Cores para identificação visual das pistas */
+    .pista-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; color: #fff; letter-spacing: 0.03em; white-space: nowrap; margin-left: 4px; }
+    .pista-A { background: #2563eb; }  /* azul */
+    .pista-B { background: #d97706; }  /* âmbar/laranja */
     .section { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
     .section-title { font-weight: 700; font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
     .filter-chip {
@@ -599,7 +603,7 @@
       // Pill
       let pillHtml = '';
       if (status === 'aguardando') pillHtml = '<span class="pill pill-aguardando">⏳ AGUARDANDO</span>';
-      else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA' + (r && r.pista ? ' · Pista ' + r.pista : '') + '</span>';
+      else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA</span>' + (r && r.pista ? '<span class="pista-badge ' + classePista(r.pista) + '">Pista ' + escapeHtml(r.pista) + '</span>' : '');
       else if (status === 'concluida') pillHtml = '<span class="pill pill-concluida">✅ ' + escapeHtml(r.tempoTotalStr || '—') + '</span>';
       else if (status === 'dsq') pillHtml = '<span class="pill pill-dsq">❌ DSQ</span>';
 
@@ -1133,9 +1137,11 @@
       });
       const banner = document.getElementById('rStatusAtualInfo');
       if (statusAtual === 'Em Prova') {
-        const pista = r.pista ? ' (Pista ' + escapeHtml(r.pista) + ')' : '';
+        const pistaHtml = r.pista
+          ? ' <span class="pista-badge ' + classePista(r.pista) + '">Pista ' + escapeHtml(r.pista) + '</span>'
+          : '';
         const hora = r.horaInicio ? ' às ' + escapeHtml(r.horaInicio) : '';
-        banner.innerHTML = '<span class="font-semibold text-red-800">⏱️ Equipe EM PROVA' + pista + hora + '</span><br>' +
+        banner.innerHTML = '<span class="font-semibold text-red-800">⏱️ Equipe EM PROVA' + pistaHtml + hora + '</span><br>' +
           '<span class="text-slate-600">Digite o tempo bruto para marcar como Concluída, ou selecione Desclassificada. Salvar sem mexer mantém "Em Prova".</span>';
         banner.classList.remove('hidden');
       } else {
@@ -1432,6 +1438,11 @@
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     function escapeAttr(s) { return escapeHtml(s); }
+
+    function classePista(p) {
+      const v = String(p || '').trim().toUpperCase();
+      return v === 'A' ? 'pista-A' : (v === 'B' ? 'pista-B' : '');
+    }
   </script>
 </body>
 </html>

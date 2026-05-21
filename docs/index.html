@@ -66,6 +66,11 @@
     .bg-red-50{background:#fef2f2}.bg-red-100{background:#fee2e2}.bg-red-600{background:#dc2626}
     .bg-amber-100{background:#fef3c7}
     .bg-orange-100{background:#ffedd5}
+
+    /* Cores para identificação visual das pistas */
+    .pista-badge{display:inline-block;font-weight:700;padding:2px 8px;border-radius:9999px;color:#fff;font-size:.75rem;line-height:1rem;white-space:nowrap}
+    .pista-A{background:#2563eb}  /* azul */
+    .pista-B{background:#d97706}  /* âmbar/laranja */
     .bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-from,#b91c1c),var(--tw-to,#991b1b))}
     .from-red-700{--tw-from:#b91c1c}.to-red-800{--tw-to:#991b1b}
     .bg-white\/20{background:rgba(255,255,255,.2)}
@@ -293,7 +298,7 @@
                 renderCapitaInline(eq.equipe) +
               '</span>' +
               '<span class="chevron text-xs text-slate-500">▾</span>' +
-              (eq.pista ? '<span class="ml-auto text-xs bg-red-600 text-white px-2 py-0.5 rounded">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
+              (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
             '</div>' +
             (eq.horaInicio ? '<div class="text-xs text-slate-600 mt-1">Início: ' + escapeHtml(eq.horaInicio) + '</div>' : '') +
             renderDetalhesEquipe(eq.equipe) +
@@ -505,6 +510,11 @@
       return String(s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function classePista(p) {
+      const v = String(p || '').trim().toUpperCase();
+      return v === 'A' ? 'pista-A' : (v === 'B' ? 'pista-B' : '');
     }
 
     function formatarHoraISO(iso) {

@@ -309,15 +309,19 @@
     function renderEmProva(emProva) {
       if (!emProva || emProva.length === 0) return '';
       const items = emProva.map(function (eq) {
+        const corporacao = eq.corporacao || eq.pais || '';
         return (
           '<div class="card bg-red-50 border border-red-200 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
             '<div class="flex items-center gap-2">' +
               '<span class="pulse-dot"></span>' +
-              '<span class="font-bold truncate flex-1 min-w-0">' +
-                escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
-                renderCapitaInline(eq.equipe) +
-              '</span>' +
-              '<span class="chevron text-xs text-slate-500">▾</span>' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="font-bold truncate">' +
+                  escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
+                  renderCapitaInline(eq.equipe) +
+                  ' <span class="chevron text-xs text-slate-500">▾</span>' +
+                '</div>' +
+                (corporacao ? '<div class="text-xs text-slate-600 truncate">' + escapeHtml(corporacao) + '</div>' : '') +
+              '</div>' +
               (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
             '</div>' +
             (eq.horaInicio ? '<div class="text-xs text-slate-600 mt-1">Início: ' + escapeHtml(eq.horaInicio) + '</div>' : '') +

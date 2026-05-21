@@ -67,6 +67,12 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(0.85); }
     }
+    .card-equipe {
+      cursor: pointer;
+      transition: background 0.12s, transform 0.08s;
+    }
+    .card-equipe:hover { background: #f8fafc; }
+    .card-equipe:active { transform: scale(0.985); background: #f1f5f9; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -544,7 +550,17 @@
         return renderCardEquipe(eq);
       }).join('');
 
-      // Binds dos botões e checkboxes
+      // Card clicável → abre tela de Pontuação (atalho rápido)
+      cont.querySelectorAll('.card-equipe[data-card-nome]').forEach(function (card) {
+        card.addEventListener('click', function (ev) {
+          // Ignora clique em botões internos ou no checkbox de seleção múltipla
+          if (ev.target.closest('button, input[type="checkbox"]')) return;
+          const nome = card.getAttribute('data-card-nome');
+          if (nome) abrirTelaResultado(nome);
+        });
+      });
+
+      // Binds dos botões internos do card
       cont.querySelectorAll('button[data-acao]').forEach(function (btn) {
         btn.addEventListener('click', function (ev) {
           ev.stopPropagation();
@@ -598,8 +614,8 @@
         : '';
 
       return (
-        '<div class="bg-white border border-slate-200 rounded p-2">' +
-          '<div class="flex items-center gap-2 mb-1.5">' +
+        '<div class="bg-white border border-slate-200 rounded p-2 card-equipe" data-card-nome="' + escapeAttr(eq.nome) + '" title="Toque para lançar pontuação">' +
+          '<div class="flex items-center gap-2">' +
             checkbox +
             ordemBadge +
             '<div class="text-xl">' + escapeHtml(eq.bandeira || '🏳️') + '</div>' +
@@ -612,11 +628,8 @@
                 escapeHtml(capInfo) + ' · ' + nPart + ' part.' +
               '</div>' +
             '</div>' +
-          '</div>' +
-          '<div class="flex gap-1">' +
-            '<button class="btn btn-success text-xs flex-1" data-acao="pontuacao" data-nome="' + escapeAttr(eq.nome) + '">📊 Pontuação</button>' +
-            '<button class="btn btn-secondary text-xs" data-acao="editar" data-nome="' + escapeAttr(eq.nome) + '" title="Editar dados">✏️</button>' +
-            '<button class="btn btn-danger text-xs" data-acao="excluir" data-nome="' + escapeAttr(eq.nome) + '" title="Excluir">🗑️</button>' +
+            '<button class="btn btn-secondary text-xs" data-acao="editar" data-nome="' + escapeAttr(eq.nome) + '" title="Editar cadastro da equipe">✏️</button>' +
+            '<button class="btn btn-danger text-xs" data-acao="excluir" data-nome="' + escapeAttr(eq.nome) + '" title="Excluir equipe">🗑️</button>' +
           '</div>' +
         '</div>'
       );

@@ -280,8 +280,7 @@
               '<div class="text-3xl">' + medalhas[i] + '</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
-                  escapeHtml(eq.equipe) +
+                                    escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
                 '</div>' +
@@ -316,7 +315,7 @@
               '<span class="pulse-dot"></span>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
+                  escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
                 '</div>' +
@@ -348,8 +347,7 @@
               '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
-                  escapeHtml(eq.equipe) +
+                                    escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
                 '</div>' +
@@ -378,8 +376,7 @@
               '<div class="font-bold text-slate-400 text-lg w-8">' + (i + 1) + 'º</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
-                  escapeHtml(eq.equipe) +
+                                    escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
                 '</div>' +
@@ -411,7 +408,7 @@
           '<div class="card bg-slate-50 border border-slate-300 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
             '<div class="flex items-center gap-2">' +
               '<div class="font-bold text-slate-700 line-through truncate flex-1 min-w-0">' +
-                escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
+                escapeHtml(eq.equipe) +
                 renderCapitaInline(eq.equipe) +
               '</div>' +
               '<span class="chevron text-xs text-slate-500">▾</span>' +

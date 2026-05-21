@@ -88,12 +88,19 @@
     /* bordas */
     .border{border-width:1px;border-style:solid}
     .border-2{border-width:2px;border-style:solid}
+    .border-b{border-bottom-width:1px;border-bottom-style:solid}
     .border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-300{border-color:#cbd5e1}.border-slate-400{border-color:#94a3b8}
     .border-red-200{border-color:#fecaca}.border-red-300{border-color:#fca5a5}.border-red-400{border-color:#f87171}
     .border-amber-400{border-color:#fbbf24}.border-orange-400{border-color:#fb923c}
+    .border-black{border-color:#000}
     .border-t-transparent{border-top-color:transparent}
     .last\:border-0:last-child{border:0}
     .rounded{border-radius:.25rem}.rounded-lg{border-radius:.5rem}.rounded-full{border-radius:9999px}
+    .overflow-hidden{overflow:hidden}
+
+    /* cores azul (baterias / aguardando) */
+    .bg-blue-50{background:#eff6ff}.bg-blue-100{background:#dbeafe}
+    .text-blue-900{color:#1e3a8a}
 
     /* sombra */
     .shadow-lg{box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1)}
@@ -358,7 +365,7 @@
         if (simultaneas) {
           const cardsHtml = grupo.equipes.map(function (eq) {
             return (
-              '<div class="card bg-white p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+              '<div class="card bg-blue-50 p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
                 '<div class="flex items-center gap-3">' +
                   '<div class="flex-1 min-w-0">' +
                     '<div class="font-bold truncate">' +
@@ -393,7 +400,7 @@
           fallback++;
           const ordemDisplay = grupo.ordemNum != null ? grupo.ordemNum : fallback;
           return (
-            '<div class="card bg-white border border-slate-300 border-l-4 border-l-slate-400 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
+            '<div class="card bg-blue-50 border border-slate-400 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
               '<div class="flex items-center gap-3">' +
                 '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
                 '<div class="flex-1 min-w-0">' +

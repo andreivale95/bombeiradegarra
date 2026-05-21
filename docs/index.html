@@ -355,6 +355,7 @@
                 '</div>' +
                 '<div class="text-xs text-slate-600 truncate">' + escapeHtml(eq.corporacao || eq.pais || '') + '</div>' +
               '</div>' +
+              (eq.pista ? '<span class="ml-auto pista-badge ' + classePista(eq.pista) + '">Pista ' + escapeHtml(eq.pista) + '</span>' : '') +
             '</div>' +
             renderDetalhesEquipe(eq.equipe) +
           '</div>'

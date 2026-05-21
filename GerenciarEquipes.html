@@ -557,8 +557,7 @@
       // Card clicável → abre tela de Pontuação (atalho rápido)
       cont.querySelectorAll('.card-equipe[data-card-nome]').forEach(function (card) {
         card.addEventListener('click', function (ev) {
-          // Ignora clique em botões internos ou no checkbox de seleção múltipla
-          if (ev.target.closest('button, input[type="checkbox"]')) return;
+          if (ev.target.closest('button, input[type="checkbox"], select')) return;
           const nome = card.getAttribute('data-card-nome');
           if (nome) abrirTelaResultado(nome);
         });
@@ -591,6 +590,31 @@
           atualizarBarraAcao();
         });
       });
+
+      // Selector de pista pré-prova (equipes Aguardando)
+      cont.querySelectorAll('select[data-pista-equipe]').forEach(function (sel) {
+        sel.addEventListener('change', function (ev) {
+          ev.stopPropagation();
+          const nome = sel.getAttribute('data-pista-equipe');
+          const pista = sel.value;
+          sel.disabled = true;
+          google.script.run
+            .withSuccessHandler(function (res) {
+              sel.disabled = false;
+              if (res && res.sucesso) {
+                mostrarToast((pista ? 'Pista ' + pista + ' definida' : 'Pista removida') + ' — ' + nome, 'success');
+                carregarLista();
+              } else {
+                mostrarToast('Erro: ' + (res && res.erro ? res.erro : 'falha'), 'error');
+              }
+            })
+            .withFailureHandler(function (err) {
+              sel.disabled = false;
+              mostrarToast('Erro: ' + (err && err.message ? err.message : err), 'error');
+            })
+            .salvarPistaAguardando(nome, pista);
+        });
+      });
     }
 
     function renderCardEquipe(eq) {
@@ -602,7 +626,7 @@
 
       // Pill
       let pillHtml = '';
-      if (status === 'aguardando') pillHtml = '<span class="pill pill-aguardando">⏳ AGUARDANDO</span>';
+      if (status === 'aguardando') pillHtml = '<span class="pill pill-aguardando">⏳ AGUARDANDO</span>' + (r && r.pista ? '<span class="pista-badge ' + classePista(r.pista) + '">Pista ' + escapeHtml(r.pista) + '</span>' : '');
       else if (status === 'emprova') pillHtml = '<span class="pill pill-emprova"><span class="pulse-dot"></span>&nbsp;EM PROVA</span>' + (r && r.pista ? '<span class="pista-badge ' + classePista(r.pista) + '">Pista ' + escapeHtml(r.pista) + '</span>' : '');
       else if (status === 'concluida') pillHtml = '<span class="pill pill-concluida">✅ ' + escapeHtml(r.tempoTotalStr || '—') + '</span>';
       else if (status === 'dsq') pillHtml = '<span class="pill pill-dsq">❌ DSQ</span>';
@@ -615,6 +639,18 @@
 
       const ordemBadge = ordem !== ''
         ? '<span class="inline-block text-xs font-bold text-slate-400 w-5">' + ordem + 'º</span>'
+        : '';
+
+      const pistaAtual = (status === 'aguardando' && r && r.pista) ? r.pista : '';
+      const pistaSelector = status === 'aguardando'
+        ? '<div class="mt-1.5 flex items-center gap-1.5 ml-7">' +
+            '<span class="text-xs text-slate-400">🏷️ Pista:</span>' +
+            '<select class="text-xs border border-slate-200 rounded px-1.5 py-0.5 cursor-pointer" data-pista-equipe="' + escapeAttr(eq.nome) + '">' +
+              '<option value=""' + (!pistaAtual ? ' selected' : '') + '>—</option>' +
+              '<option value="A"' + (pistaAtual === 'A' ? ' selected' : '') + '>Pista A</option>' +
+              '<option value="B"' + (pistaAtual === 'B' ? ' selected' : '') + '>Pista B</option>' +
+            '</select>' +
+          '</div>'
         : '';
 
       return (
@@ -635,6 +671,7 @@
             '<button class="btn btn-secondary text-xs" data-acao="editar" data-nome="' + escapeAttr(eq.nome) + '" title="Editar cadastro da equipe">✏️</button>' +
             '<button class="btn btn-danger text-xs" data-acao="excluir" data-nome="' + escapeAttr(eq.nome) + '" title="Excluir equipe">🗑️</button>' +
           '</div>' +
+          pistaSelector +
         '</div>'
       );
     }

@@ -114,7 +114,7 @@ function abrirGerenciador() {
   const html = HtmlService.createTemplateFromFile('GerenciarEquipes')
     .evaluate()
     .setTitle('Gerenciador ENBOM')
-    .setWidth(360);
+    .setWidth(540);
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
@@ -685,6 +685,43 @@ function _salvarLinhaResultado(ss, nomeEquipe, r) {
   return { sucesso: true };
 }
 
+/**
+ * Define a pista (A, B ou '') de uma equipe com status Aguardando,
+ * sem alterar nenhum outro campo.
+ */
+function salvarPistaAguardando(nomeEquipe, pista) {
+  try {
+    const ss = SpreadsheetApp.getActive();
+    const abaR = ss.getSheetByName(NOMES_ABAS.RESULTADOS);
+    if (!abaR) return { sucesso: false, erro: 'Aba "Resultados" não encontrada.' };
+
+    const pistaVal = String(pista || '').trim();
+    const ultimaR = encontrarUltimaLinhaComConteudo(abaR, 1);
+
+    let linhaR = -1;
+    if (ultimaR >= 2) {
+      const vals = abaR.getRange(2, 1, ultimaR - 1, 1).getValues();
+      for (let i = 0; i < vals.length; i++) {
+        if (String(vals[i][0] || '').trim() === nomeEquipe) { linhaR = i + 2; break; }
+      }
+    }
+
+    if (linhaR >= 0) {
+      abaR.getRange(linhaR, 2).setValue(pistaVal);
+    } else {
+      linhaR = encontrarProximaLinhaVazia(abaR, 1);
+      abaR.getRange(linhaR, 1).setValue(nomeEquipe);
+      abaR.getRange(linhaR, 2).setValue(pistaVal);
+      abaR.getRange(linhaR, 5).setValue('Aguardando');
+    }
+
+    CacheService.getScriptCache().remove(CHAVE_CACHE);
+    return { sucesso: true };
+  } catch (e) {
+    return { sucesso: false, erro: e.message };
+  }
+}
+
 // Converte "HH:MM" ou "HH:MM:SS" em Date (para coluna formatada como hora).
 // Retorna '' se entrada vazia/inválida.
 function parseHoraHHMM(valor) {
@@ -825,6 +862,7 @@ function getDadosPainel() {
       return !r || r.status === 'Aguardando';
     })
     .map(function (e) {
+      const r = resultadosEnriquecidos.find(function (x) { return x.equipe === e.nome; });
       return {
         equipe: e.nome,
         pais: e.pais,
@@ -832,6 +870,7 @@ function getDadosPainel() {
         corporacao: e.corporacao,
         capita: e.capita,
         ordemProva: e.ordemProva,
+        pista: (r && r.pista) ? r.pista : '',
       };
     })
     // Ordena por ordem_prova (do sorteio). Equipes sem ordem vão pro fim.

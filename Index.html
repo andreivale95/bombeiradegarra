@@ -48,11 +48,6 @@
       display: inline-block; font-weight: 700; padding: 2px 8px;
       border-radius: 9999px; color: #fff; font-size: .75rem; line-height: 1rem; white-space: nowrap;
     }
-    .flag-abbr {
-      display: inline-block; font-size: 10px; font-weight: 700; color: #475569;
-      background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 3px;
-      padding: 1px 5px; letter-spacing: .05em; vertical-align: middle; margin-right: 4px;
-    }
     .pista-A { background: #2563eb; }  /* azul */
     .pista-B { background: #d97706; }  /* âmbar/laranja */
 
@@ -208,7 +203,7 @@
               '<div class="text-3xl">' + medalhas[i] + '</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  (eq.bandeira ? '<span class="flag-abbr">' + escapeHtml(eq.bandeira) + '</span>' : '') +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
                   escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
@@ -244,7 +239,7 @@
               '<span class="pulse-dot"></span>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  (eq.bandeira ? '<span class="flag-abbr">' + escapeHtml(eq.bandeira) + '</span> ' : '') + escapeHtml(eq.equipe) +
+                  escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
                 '</div>' +
@@ -277,7 +272,7 @@
               '<div class="font-bold text-slate-400 text-sm w-8">' + ordemDisplay + 'º</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  (eq.bandeira ? '<span class="flag-abbr">' + escapeHtml(eq.bandeira) + '</span>' : '') +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
                   escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
@@ -307,7 +302,7 @@
               '<div class="font-bold text-slate-400 text-lg w-8">' + (i + 1) + 'º</div>' +
               '<div class="flex-1 min-w-0">' +
                 '<div class="font-bold truncate">' +
-                  (eq.bandeira ? '<span class="flag-abbr">' + escapeHtml(eq.bandeira) + '</span>' : '') +
+                  '<span class="mr-1">' + escapeHtml(eq.bandeira || '🏳️') + '</span>' +
                   escapeHtml(eq.equipe) +
                   renderCapitaInline(eq.equipe) +
                   ' <span class="chevron text-xs text-slate-500">▾</span>' +
@@ -340,7 +335,7 @@
           '<div class="card bg-slate-50 border border-slate-300 rounded-lg p-3" data-equipe="' + escapeHtml(eq.equipe) + '">' +
             '<div class="flex items-center gap-2">' +
               '<div class="font-bold text-slate-700 line-through truncate flex-1 min-w-0">' +
-                (eq.bandeira ? '<span class="flag-abbr">' + escapeHtml(eq.bandeira) + '</span> ' : '') + escapeHtml(eq.equipe) +
+                escapeHtml(eq.bandeira || '🏳️') + ' ' + escapeHtml(eq.equipe) +
                 renderCapitaInline(eq.equipe) +
               '</div>' +
               '<span class="chevron text-xs text-slate-500">▾</span>' +

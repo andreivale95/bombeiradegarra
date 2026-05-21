@@ -209,16 +209,16 @@ function criarAbaRefPaises(ss) {
   const aba = recriarAba(ss, 'RefPaises');
   const dados = [
     ['pais', 'bandeira_emoji'],
-    ['Brasil', '🇧🇷'],
-    ['Argentina', '🇦🇷'],
-    ['Bolívia', '🇧🇴'],
-    ['Chile', '🇨🇱'],
-    ['Colômbia', '🇨🇴'],
-    ['Equador', '🇪🇨'],
-    ['Paraguai', '🇵🇾'],
-    ['Peru', '🇵🇪'],
-    ['Uruguai', '🇺🇾'],
-    ['Venezuela', '🇻🇪'],
+    ['Brasil', ''],
+    ['Argentina', ''],
+    ['Bolívia', ''],
+    ['Chile', ''],
+    ['Colômbia', ''],
+    ['Equador', ''],
+    ['Paraguai', ''],
+    ['Peru', ''],
+    ['Uruguai', ''],
+    ['Venezuela', ''],
   ];
   aba.getRange(1, 1, dados.length, 2).setValues(dados);
   aba.getRange(1, 1, 1, 2).setFontWeight('bold').setBackground('#bfdbfe');
@@ -420,10 +420,10 @@ function popularDadosExemplo() {
   const ss = SpreadsheetApp.getActive();
 
   const equipes = [
-    ['RIT-AC', 'Brasil', 'CBMAC', 'Acre', '🇧🇷', '', 'Equipe anfitriã', 1],
-    ['RIT-SP', 'Brasil', 'CBPMESP', 'São Paulo', '🇧🇷', '', '', 2],
-    ['RIT-RJ', 'Brasil', 'CBMERJ', 'Rio de Janeiro', '🇧🇷', '', '', 3],
-    ['RIT-MG', 'Brasil', 'CBMMG', 'Minas Gerais', '🇧🇷', '', '', 4],
+    ['RIT-AC', 'Brasil', 'CBMAC', 'Acre', '', '', 'Equipe anfitriã', 1],
+    ['RIT-SP', 'Brasil', 'CBPMESP', 'São Paulo', '', '', '', 2],
+    ['RIT-RJ', 'Brasil', 'CBMERJ', 'Rio de Janeiro', '', '', '', 3],
+    ['RIT-MG', 'Brasil', 'CBMMG', 'Minas Gerais', '', '', '', 4],
   ];
   ss.getSheetByName('Equipes').getRange(2, 1, equipes.length, 8).setValues(equipes);
 

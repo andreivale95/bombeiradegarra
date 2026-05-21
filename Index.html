@@ -50,6 +50,15 @@
     }
     .pista-A { background: #2563eb; }  /* azul */
     .pista-B { background: #d97706; }  /* âmbar/laranja */
+
+    /* Barra de estatísticas (cabeçalho) */
+    .stats-bar {
+      background: rgba(0,0,0,.18); color: #fff; font-size: .75rem; line-height: 1rem;
+      padding: 6px 12px; display: flex; align-items: center; justify-content: center;
+      gap: .5rem; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .stats-bar b { font-weight: 700; font-size: .85rem; }
+    .stats-sep { opacity: .5; }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen pb-12">
@@ -70,6 +79,13 @@
           🔄 Atualizar
         </button>
       </div>
+    </div>
+    <div id="barraStats" class="stats-bar">
+      <span>📋 <b id="statTotal">—</b> equipes</span>
+      <span class="stats-sep">·</span>
+      <span>✅ <b id="statConcluidas">—</b> concluídas</span>
+      <span class="stats-sep">·</span>
+      <span>⏱️ <b id="statEmProva">—</b> em prova</span>
     </div>
   </header>
 
@@ -152,6 +168,14 @@
       (dados.equipes || []).forEach(function (e) { equipesPorNome[e.nome] = e; });
       penalidadesPorEquipe = dados.penalidadesPorEquipe || {};
       versaoConhecida = dados.cacheVersion || '';
+
+      // Estatísticas no cabeçalho
+      const totalEquipes = (dados.equipes || []).length;
+      const totalConcluidas = (dados.resultados.concluidas || []).length;
+      const totalEmProva = (dados.resultados.emProva || []).length;
+      document.getElementById('statTotal').textContent = totalEquipes;
+      document.getElementById('statConcluidas').textContent = totalConcluidas + (totalEquipes ? '/' + totalEquipes : '');
+      document.getElementById('statEmProva').textContent = totalEmProva;
 
       const html = [];
       html.push(renderPodio(dados.resultados.podio));
